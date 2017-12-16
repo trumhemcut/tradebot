@@ -12,16 +12,23 @@ namespace tradebot
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional:true)
-                .AddJsonFile("appsettings.dev.json", optional:true)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.dev.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
             decimal expectedDelta = Decimal.Parse(Configuration["ExpectedDelta"]);
             int resumeAfterExpectedDelta = Int32.Parse(Configuration["ResumeAfterDelta"]);
             string emailTo = Configuration["Email:EmailTo"];
-            
+
             var coin = "ADA";
+            if (args.Length > 0)
+            {
+                coin = args[0];
+                if (!"ADA|XLM|XRP".Contains(coin))
+                    throw new Exception("Coin is not supported!");
+            }
+
             var buyAccountTradingFee = Decimal.Parse(Configuration["BuyAccount:TradingFee"]);
             var buyAccountBitcoinTransferFee = Decimal.Parse(Configuration["BuyAccount:BitcoinTransferFee"]);
             var buyAccount = new BittrexAccount(
@@ -36,8 +43,8 @@ namespace tradebot
                                 sellAccountTradingFee,
                                 sellAccountBitcoinTransferFee);
 
-            var tradeBot = new TradeBot(coin, 
-                                        expectedDelta, 
+            var tradeBot = new TradeBot(coin,
+                                        expectedDelta,
                                         resumeAfterExpectedDelta,
                                         emailTo,
                                         buyAccount,

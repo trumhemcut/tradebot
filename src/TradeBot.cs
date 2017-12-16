@@ -45,11 +45,11 @@ namespace tradebot
                     await UpdateCoinPrices();
                     var deltaPrices = this.GetDelta();
                     var profit = this.CaculateProfit();
-                    Console.WriteLine($"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} - " +
-                                      $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} - " +
-                                      $"Bid-Bid: {deltaPrices.Item1} - " +
-                                      $"Bid-Ask: {deltaPrices.Item2} - " +
-                                      $"Profit: {Math.Round(profit.Item1)} - " +
+                    Console.WriteLine($"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                                      $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                                      $"Bid-Bid: {deltaPrices.Item1} * " +
+                                      $"Bid-Ask: {deltaPrices.Item2} * " +
+                                      $"Profit: {Math.Round(profit.Item1)} * " +
                                       $"AmountToSell: {Math.Round(profit.Item2)}");
 
                     // Check to send notification
