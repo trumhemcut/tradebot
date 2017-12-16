@@ -27,12 +27,16 @@ namespace tradebot
         public TradeBot(string coin,
                         decimal expectedDelta,
                         int resumeAfterExpectedData,
-                        string emailTo)
+                        string emailTo,
+                        ITradeAccount buyAccount,
+                        ITradeAccount sellAccount)
         {
             this.Coin = coin;
             this.ExpectedDelta = expectedDelta;
             this.ResumeAfterExpectedDelta = resumeAfterExpectedData;
             this.EmailTo = emailTo;
+            this.SellAccount = sellAccount;
+            this.BuyAccount = buyAccount;
         }
         public async Task Execute()
         {
@@ -42,17 +46,18 @@ namespace tradebot
                 try
                 {
                     var deltaPrices = await this.GetDelta();
-                    Console.WriteLine($"Bittrex Price: {deltaPrices.Item1} - " +
-                                      $"Binance Price: {deltaPrices.Item2} - " +
+                    var profit = this.CaculateProfit();
+                    Console.WriteLine($"Bittrex: {deltaPrices.Item1} - " +
+                                      $"Binance: {deltaPrices.Item2} - " +
                                       $"Bid-Bid: {deltaPrices.Item1} - " +
-                                      $"Bid-Ask: {deltaPrices.Item2}");
+                                      $"Bid-Ask: {deltaPrices.Item2} - " +
+                                      $"Profit: {profit}");
 
                     // Check to send notification
                     if (deltaPrices.Item1 >= this.ExpectedDelta)
                     {
-                        var profit = this.CaculateProfit();
                         Console.WriteLine("Time to buy ...");
-                        await SendMailIfTimePassed(deltaPrices.Item1, profit);                        
+                        await SendMailIfTimePassed(deltaPrices.Item1, profit);
                     }
 
                     errorCount = 0;
@@ -61,7 +66,8 @@ namespace tradebot
                 catch (Exception ex)
                 {
                     Console.WriteLine("we saw an error. Please try again!");
-                    Console.WriteLine(ex.Message);
+                    if (ex.InnerException != null)
+                        Console.WriteLine(ex.InnerException.Message);
                     errorCount++;
                     if (errorCount > 100)
                     {
@@ -78,12 +84,13 @@ namespace tradebot
             await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit}", this.EmailTo, "Buy di pa");
         }
 
-        public async Task<Tuple<decimal, decimal>> GetDelta(){
+        public async Task<Tuple<decimal, decimal>> GetDelta()
+        {
             await UpdateCoinPrices();
 
-            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice - 
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
                               this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice - 
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
                               this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
 
             return new Tuple<decimal, decimal>(deltaBidBid, deltaBidAsk);
@@ -91,16 +98,16 @@ namespace tradebot
 
         public async Task UpdateCoinPrices()
         {
-            await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());            
+            await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
         }
 
         public decimal CaculateProfit()
         {
-            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TradingFee) *
-                                      (this.SellAccount.TradeCoin.TradingFee / 100);
+            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.TradingFee) *
+                                      (this.SellAccount.TradingFee / 100);
             var coinAmountAtSell = bitcoinAmountAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var cointAmountAtBuy = (this.BitcoinTradingAmount - (1 - this.BuyAccount.TradeCoin.TradingFee / 100)) *
+            var cointAmountAtBuy = (this.BitcoinTradingAmount - (1 - this.BuyAccount.TradingFee / 100)) *
                                    this.SellAccount.TradeCoin.CoinPrice.AskPrice;
 
             return cointAmountAtBuy - coinAmountAtSell;

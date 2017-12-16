@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using tradebot.TradePlatform;
 
 namespace tradebot
 {
@@ -20,10 +21,27 @@ namespace tradebot
             int resumeAfterExpectedDelta = Int32.Parse(Configuration["ResumeAfterDelta"]);
             string emailTo = Configuration["Email:EmailTo"];
             
-            var tradeBot = new TradeBot("ADA", 
+            var coin = "ADA";
+            var buyAccountTradingFee = Decimal.Parse(Configuration["BuyAccount:TradingFee"]);
+            var buyAccountBitcoinTransferFee = Decimal.Parse(Configuration["BuyAccount:BitcoinTransferFee"]);
+            var buyAccount = new BittrexAccount(
+                                coin,
+                                buyAccountTradingFee,
+                                buyAccountBitcoinTransferFee);
+
+            var sellAccountTradingFee = Decimal.Parse(Configuration["SellAccount:TradingFee"]);
+            var sellAccountBitcoinTransferFee = Decimal.Parse(Configuration["SellAccount:BitcoinTransferFee"]);
+            var sellAccount = new BinanceAccount(
+                                coin,
+                                sellAccountTradingFee,
+                                sellAccountBitcoinTransferFee);
+
+            var tradeBot = new TradeBot(coin, 
                                         expectedDelta, 
                                         resumeAfterExpectedDelta,
-                                        emailTo);
+                                        emailTo,
+                                        buyAccount,
+                                        sellAccount);
 
             tradeBot.Execute().Wait();
         }
