@@ -4,11 +4,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using tradebot.TradePlatform;
 
 namespace tradebot
 {
     public class TradeBot
     {
+        public decimal BitcoinTradingAmount { get; set; }
+        public ITradeAccount BuyAccount { get; set; }
+        public ITradeAccount SellAccount { get; set; }
         public int ResumeAfterExpectedDelta { get; protected set; }
         public decimal ExpectedDelta { get; protected set; }
         public string Coin { get; protected set; }
@@ -45,22 +49,18 @@ namespace tradebot
             {
                 try
                 {
-                    var getBittrexPriceTask = GetCoinPriceFromBittrex(this.Coin);
-                    var getBinancePriceTask = GetCoinPriceFromBinance(this.Coin);
-                    await Task.WhenAll(getBittrexPriceTask, getBinancePriceTask);
-
-                    var deltaBidBid = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.BidPrice;
-                    var deltaBidAsk = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.AskPrice;
-                    Console.WriteLine($"Bittrex Price: {getBittrexPriceTask.Result.BidPrice} - " +
-                                      $"Binance Price: {getBinancePriceTask.Result.BidPrice} - " +
-                                      $"Bid-Bid: {deltaBidBid} - " +
-                                      $"Bid-Ask: {deltaBidAsk}");
+                    var deltaPrices = await this.GetDelta();
+                    Console.WriteLine($"Bittrex Price: {deltaPrices.Item1} - " +
+                                      $"Binance Price: {deltaPrices.Item2} - " +
+                                      $"Bid-Bid: {deltaPrices.Item1} - " +
+                                      $"Bid-Ask: {deltaPrices.Item2}");
 
                     // Check to send notification
-                    if (deltaBidBid >= this.ExpectedDelta)
+                    if (deltaPrices.Item1 >= this.ExpectedDelta)
                     {
+                        var profit = this.CaculateProfit();
                         Console.WriteLine("Time to buy ...");
-                        await EmailHelper.SendEmail($"Time to buy {deltaBidBid}", this.EmailTo, "Buy di pa");
+                        await EmailHelper.SendEmail($"[TradeBot] Delta = {deltaPrices.Item1}, Profit = {profit}", this.EmailTo, "Buy di pa");
 
                         Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
                     }
@@ -73,7 +73,7 @@ namespace tradebot
                     Console.WriteLine("we saw an error. Please try again!");
                     Console.WriteLine(ex.Message);
                     errorCount++;
-                    if(errorCount > 100)
+                    if (errorCount > 100)
                     {
                         await EmailHelper.SendEmail($"[TradeBot] Program Error, Please double check", this.EmailTo, ex.Message);
                         Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
@@ -83,39 +83,33 @@ namespace tradebot
             }
         }
 
-        public async Task<CoinPrice> GetCoinPriceFromBittrex(string coin)
-        {
-            using (var client = new HttpClient())
-            {
-                string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getticker?market=BTC-{coin}");
-                dynamic d = JsonConvert.DeserializeObject(result);
-                return new CoinPrice
-                {
-                    Coin = coin,
-                    LastPrice = d.result.Last,
-                    BidPrice = d.result.Bid,
-                    AskPrice = d.result.Ask,
-                    RetrivalTime = DateTime.Now
-                };
-            }
+
+        public async Task<Tuple<decimal, decimal>> GetDelta(){
+            await UpdateCoinPrices();
+
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice - 
+                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice - 
+                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
+
+            return new Tuple<decimal, decimal>(deltaBidBid, deltaBidAsk);
         }
 
-        // Reference to https://www.binance.com/restapipub.html#user-content-market-data-endpoints
-        public async Task<CoinPrice> GetCoinPriceFromBinance(string coin)
+        public async Task UpdateCoinPrices()
         {
-            using (var client = new HttpClient())
-            {
-                string result = await client.GetStringAsync($"https://api.binance.com/api/v1/depth?symbol={coin}BTC&limit=5");
-                dynamic d = JsonConvert.DeserializeObject(result);
-                return new CoinPrice
-                {
-                    Coin = coin,
-                    LastPrice = d.bids[0][0],
-                    BidPrice = d.bids[0][0],
-                    AskPrice = d.asks[0][0],
-                    RetrivalTime = DateTime.Now
-                };
-            }
+            await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());            
+        }
+
+        public decimal CaculateProfit()
+        {
+            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TradingFee) *
+                                      (this.SellAccount.TradeCoin.TradingFee / 100);
+            var coinAmountAtSell = bitcoinAmountAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
+
+            var cointAmountAtBuy = (this.BitcoinTradingAmount - (1 - this.BuyAccount.TradeCoin.TradingFee / 100)) *
+                                   this.SellAccount.TradeCoin.CoinPrice.AskPrice;
+
+            return cointAmountAtBuy - coinAmountAtSell;
         }
     }
 }
