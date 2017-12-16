@@ -2,3 +2,7 @@ src/bin/
 src/obj/
 src/.vscode/
 src/appsettings.dev.json
+tests/bin/
+tests/obj/
+tests/.vscode/
+tests/appsettings.dev.json

@@ -20,10 +20,7 @@ namespace tradebot
         public string EmailTo { get; set; }
         private static TradeBot _tradebot;
 
-        public TradeBot()
-        {
-            this.Coin = "ADA";
-        }
+        public TradeBot() => this.Coin = "ADA";
         public TradeBot(string coin,
                         decimal expectedDelta,
                         int resumeAfterExpectedData,
