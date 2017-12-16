@@ -49,7 +49,8 @@ namespace tradebot
                                       $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} - " +
                                       $"Bid-Bid: {deltaPrices.Item1} - " +
                                       $"Bid-Ask: {deltaPrices.Item2} - " +
-                                      $"Profit: {profit}");
+                                      $"Profit: {Math.Round(profit.Item1)} - " +
+                                      $"AmountToSell: {Math.Round(profit.Item2)}");
 
                     // Check to send notification
                     if (deltaPrices.Item1 >= this.ExpectedDelta)
@@ -77,9 +78,9 @@ namespace tradebot
             }
         }
 
-        private async Task SendMailIfTimePassed(decimal delta, decimal profit)
+        private async Task SendMailIfTimePassed(decimal delta, Tuple<decimal, decimal> profit)
         {
-            await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit}", this.EmailTo, "Buy di pa");
+            await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit.Item1}, AmountToBuy={profit.Item2}", this.EmailTo, "Buy di pa");
         }
 
         public Tuple<decimal, decimal> GetDelta()
@@ -97,7 +98,7 @@ namespace tradebot
             await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
         }
 
-        public decimal CaculateProfit()
+        public Tuple<decimal, decimal> CaculateProfit()
         {
             var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
                                       (1 + this.SellAccount.TradingFee / 100);
@@ -106,7 +107,7 @@ namespace tradebot
             var bitcoinAmountAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
             var coinAmountAtBuy = bitcoinAmountAtBuy / this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
 
-            return coinAmountAtBuy - coinAmountAtSell;
+            return new Tuple<decimal, decimal>(coinAmountAtBuy - coinAmountAtSell, coinAmountAtSell);
         }
     }
 }

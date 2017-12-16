@@ -62,12 +62,13 @@ namespace tests
                 LastPrice = 0.00001375M,
                 RetrivalTime = DateTime.Now
             };
-            
+
             // When
             var profit = this.tradeBot.CaculateProfit();
 
             // Then
-            Assert.True(Math.Floor(profit) == 562);
+            Assert.True(Math.Floor(profit.Item1) == 562);
+            Assert.True(Math.Floor(profit.Item2) == 36436);
         }
     }
 }
