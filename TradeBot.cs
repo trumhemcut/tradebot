@@ -28,8 +28,8 @@ namespace tradebot
         {
             this.Coin = "ADA";
         }
-        public TradeBot(string coin, 
-                        decimal expectedDelta, 
+        public TradeBot(string coin,
+                        decimal expectedDelta,
                         int resumeAfterExpectedData,
                         string emailTo)
         {
@@ -40,29 +40,46 @@ namespace tradebot
         }
         public async Task Execute()
         {
+            int errorCount = 0;
             while (true)
             {
-                var getBittrexPriceTask = GetCoinPriceFromBittrex(this.Coin);
-                var getBinancePriceTask = GetCoinPriceFromBinance(this.Coin);
-                await Task.WhenAll(getBittrexPriceTask, getBinancePriceTask);
-
-                var deltaBidBid = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.BidPrice;
-                var deltaBidAsk = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.AskPrice;
-                Console.WriteLine($"Bittrex Price: {getBittrexPriceTask.Result.BidPrice} - " +
-                                  $"Binance Price: {getBinancePriceTask.Result.BidPrice} - " +
-                                  $"Bid-Bid: {deltaBidBid} - " +
-                                  $"Bid-Ask: {deltaBidAsk}");
-
-                // Check to send notification
-                if (deltaBidBid >= this.ExpectedDelta)
+                try
                 {
-                    Console.WriteLine("Time to buy ...");
-                    await EmailHelper.SendEmail($"Time to buy {deltaBidBid}", this.EmailTo, "Buy di pa");
+                    var getBittrexPriceTask = GetCoinPriceFromBittrex(this.Coin);
+                    var getBinancePriceTask = GetCoinPriceFromBinance(this.Coin);
+                    await Task.WhenAll(getBittrexPriceTask, getBinancePriceTask);
 
-                    Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
+                    var deltaBidBid = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.BidPrice;
+                    var deltaBidAsk = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.AskPrice;
+                    Console.WriteLine($"Bittrex Price: {getBittrexPriceTask.Result.BidPrice} - " +
+                                      $"Binance Price: {getBinancePriceTask.Result.BidPrice} - " +
+                                      $"Bid-Bid: {deltaBidBid} - " +
+                                      $"Bid-Ask: {deltaBidAsk}");
+
+                    // Check to send notification
+                    if (deltaBidBid >= this.ExpectedDelta)
+                    {
+                        Console.WriteLine("Time to buy ...");
+                        await EmailHelper.SendEmail($"Time to buy {deltaBidBid}", this.EmailTo, "Buy di pa");
+
+                        Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
+                    }
+
+                    errorCount = 0;
+                    Thread.Sleep(2000);
                 }
-
-                Thread.Sleep(2000);
+                catch (Exception ex)
+                {
+                    Console.WriteLine("we saw an error. Please try again!");
+                    Console.WriteLine(ex.Message);
+                    errorCount++;
+                    if(errorCount > 100)
+                    {
+                        await EmailHelper.SendEmail($"[TradeBot] Program Error, Please double check", this.EmailTo, ex.Message);
+                        Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
+                    }
+                    Thread.Sleep(2000);
+                }
             }
         }
 
