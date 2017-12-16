@@ -45,10 +45,11 @@ namespace tradebot
             {
                 try
                 {
-                    var deltaPrices = await this.GetDelta();
+                    await UpdateCoinPrices();
+                    var deltaPrices = this.GetDelta();
                     var profit = this.CaculateProfit();
-                    Console.WriteLine($"Bittrex: {deltaPrices.Item1} - " +
-                                      $"Binance: {deltaPrices.Item2} - " +
+                    Console.WriteLine($"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} - " +
+                                      $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} - " +
                                       $"Bid-Bid: {deltaPrices.Item1} - " +
                                       $"Bid-Ask: {deltaPrices.Item2} - " +
                                       $"Profit: {profit}");
@@ -84,10 +85,8 @@ namespace tradebot
             await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit}", this.EmailTo, "Buy di pa");
         }
 
-        public async Task<Tuple<decimal, decimal>> GetDelta()
+        public Tuple<decimal, decimal> GetDelta()
         {
-            await UpdateCoinPrices();
-
             var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
                               this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
             var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -

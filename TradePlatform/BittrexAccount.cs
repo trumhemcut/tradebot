@@ -34,6 +34,7 @@ namespace tradebot.TradePlatform
                 {
                     LastPrice = d.result.Last,
                     AskPrice = d.result.Ask,
+                    BidPrice = d.result.Bid,
                     RetrivalTime = DateTime.Now
                 };
             }
