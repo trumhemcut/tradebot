@@ -9,6 +9,10 @@ namespace tradebot
 {
     public class TradeBot
     {
+        public int ResumeAfterExpectedDelta { get; protected set; }
+        public decimal ExpectedDelta { get; protected set; }
+        public string Coin { get; protected set; }
+        public string EmailTo { get; set; }
         private static TradeBot _tradebot;
         public static TradeBot Instance
         {
@@ -20,13 +24,26 @@ namespace tradebot
                 return _tradebot;
             }
         }
-
-        public async Task Execute(decimal expectedDelta, string emailTo)
+        public TradeBot()
+        {
+            this.Coin = "ADA";
+        }
+        public TradeBot(string coin, 
+                        decimal expectedDelta, 
+                        int resumeAfterExpectedData,
+                        string emailTo)
+        {
+            this.Coin = coin;
+            this.ExpectedDelta = expectedDelta;
+            this.ResumeAfterExpectedDelta = resumeAfterExpectedData;
+            this.EmailTo = emailTo;
+        }
+        public async Task Execute()
         {
             while (true)
             {
-                var getBittrexPriceTask = GetCoinPriceFromBittrex("ADA");
-                var getBinancePriceTask = GetCoinPriceFromBinance("ADA");
+                var getBittrexPriceTask = GetCoinPriceFromBittrex(this.Coin);
+                var getBinancePriceTask = GetCoinPriceFromBinance(this.Coin);
                 await Task.WhenAll(getBittrexPriceTask, getBinancePriceTask);
 
                 var deltaBidBid = getBinancePriceTask.Result.BidPrice - getBittrexPriceTask.Result.BidPrice;
@@ -37,11 +54,12 @@ namespace tradebot
                                   $"Bid-Ask: {deltaBidAsk}");
 
                 // Check to send notification
-                if (deltaBidBid >= expectedDelta)
+                if (deltaBidBid >= this.ExpectedDelta)
                 {
                     Console.WriteLine("Time to buy ...");
-                    await EmailHelper.SendEmail($"Time to buy {deltaBidBid}", emailTo, "Buy di pa");
-                    return;
+                    await EmailHelper.SendEmail($"Time to buy {deltaBidBid}", this.EmailTo, "Buy di pa");
+
+                    Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
                 }
 
                 Thread.Sleep(2000);

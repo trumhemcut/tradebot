@@ -17,9 +17,15 @@ namespace tradebot
             Configuration = builder.Build();
 
             decimal expectedDelta = Decimal.Parse(Configuration["ExpectedDelta"]);
+            int resumeAfterExpectedDelta = Int32.Parse(Configuration["ResumeAfterDelta"]);
             string emailTo = Configuration["Email:EmailTo"];
+            
+            var tradeBot = new TradeBot("ADA", 
+                                        expectedDelta, 
+                                        resumeAfterExpectedDelta,
+                                        emailTo);
 
-            TradeBot.Instance.Execute(expectedDelta, emailTo).Wait();
+            tradeBot.Execute().Wait();
         }
     }
 }
