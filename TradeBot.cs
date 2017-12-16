@@ -106,10 +106,10 @@ namespace tradebot
                                       (1 - this.SellAccount.TradingFee / 100);
             var coinAmountAtSell = bitcoinAmountAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var cointAmountAtBuy = (this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100)) /
-                                   this.SellAccount.TradeCoin.CoinPrice.AskPrice;
+            var bitcoinAmountAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
+            var coinAmountAtBuy = bitcoinAmountAtBuy / this.SellAccount.TradeCoin.CoinPrice.AskPrice;
 
-            return cointAmountAtBuy - coinAmountAtSell;
+            return coinAmountAtBuy - coinAmountAtSell;
         }
     }
 }
