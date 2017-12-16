@@ -9,6 +9,7 @@ RUN dotnet restore
 # copy everything else and build
 COPY . ./
 RUN dotnet publish -c Release -o out
+COPY ./appsettings.dev.json ./out/appsettings.dev.json
 
 # build runtime image
 FROM microsoft/dotnet:runtime 

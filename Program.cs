@@ -11,8 +11,8 @@ namespace tradebot
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.dev.json")
+                .AddJsonFile("appsettings.json", optional:true)
+                .AddJsonFile("appsettings.dev.json", optional:true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
