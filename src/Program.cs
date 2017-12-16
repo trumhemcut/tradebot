@@ -43,7 +43,7 @@ namespace tradebot
                                         buyAccount,
                                         sellAccount);
 
-            tradeBot.BitcoinTradingAmount = Decimal.Parse(Configuration["BitcoinTradingAmount"]);;
+            tradeBot.BitcoinTradingAmount = Decimal.Parse(Configuration["BitcoinTradingAmount"]);
 
             tradeBot.Execute().Wait();
         }
