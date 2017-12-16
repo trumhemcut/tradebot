@@ -10,7 +10,7 @@ namespace tradebot
 {
     public class TradeBot
     {
-        private readonly TimeSpan _timeLeftToSendEmail;
+        private int _timeLeftToSendEmail;
         public decimal BitcoinTradingAmount { get; set; }
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
@@ -34,6 +34,7 @@ namespace tradebot
             this.EmailTo = emailTo;
             this.SellAccount = sellAccount;
             this.BuyAccount = buyAccount;
+            this._timeLeftToSendEmail = 0;
         }
         public async Task Execute()
         {
@@ -45,21 +46,24 @@ namespace tradebot
                     await UpdateCoinPrices();
                     var deltaPrices = this.GetDelta();
                     var profit = this.CaculateProfit();
-                    Console.WriteLine($"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
+
+                    var content = $"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"Bid-Bid: {deltaPrices.Item1} * " +
                                       $"Bid-Ask: {deltaPrices.Item2} * " +
                                       $"Profit: {Math.Round(profit.Item1)} * " +
-                                      $"AmountToSell: {Math.Round(profit.Item2)}");
+                                      $"AmountToSell: {Math.Round(profit.Item2)}";
+                    Console.WriteLine(content);
 
                     // Check to send notification
                     if (deltaPrices.Item1 >= this.ExpectedDelta)
                     {
                         Console.WriteLine("Time to buy ...");
-                        await SendMailIfTimePassed(deltaPrices.Item1, profit);
+                        await SendMailIfTimePassed(deltaPrices.Item1, profit, content);
                     }
 
                     errorCount = 0;
+                    this._timeLeftToSendEmail -= 2;
                     Thread.Sleep(2000);
                 }
                 catch (Exception ex)
@@ -78,9 +82,14 @@ namespace tradebot
             }
         }
 
-        private async Task SendMailIfTimePassed(decimal delta, Tuple<decimal, decimal> profit)
+        private async Task SendMailIfTimePassed(decimal delta, Tuple<decimal, decimal> profit, string content)
         {
-            await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit.Item1}, AmountToBuy={profit.Item2}", this.EmailTo, "Buy di pa");
+            if (this._timeLeftToSendEmail <= 0)
+            {
+                await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit.Item1}, AmountToBuy={profit.Item2}", this.EmailTo, content);
+                this._timeLeftToSendEmail = 300;
+            }
+            
         }
 
         public Tuple<decimal, decimal> GetDelta()
