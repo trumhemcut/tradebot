@@ -16,7 +16,7 @@ namespace tradebot.TradePlatform
             
             using (var client = new HttpClient())
             {
-                string result = await client.GetStringAsync($"https://api.binance.com/api/v1/depth?symbol={coin}BTC&limit=5");
+                string result = await client.GetStringAsync($"https://api.binance.com/api/v1/depth?symbol={this.TradeCoin.Token}BTC&limit=5");
                 dynamic d = JsonConvert.DeserializeObject(result);
 
                 this.TradeCoin.CoinPrice.LastPrice = d.bids[0][0];

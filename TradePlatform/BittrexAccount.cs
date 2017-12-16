@@ -16,7 +16,7 @@ namespace tradebot.TradePlatform
         {
             using (var client = new HttpClient())
             {
-                string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getticker?market=BTC-{coin}");
+                string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getticker?market=BTC-{this.TradeCoin.Token}");
                 dynamic d = JsonConvert.DeserializeObject(result);
 
                 this.TradeCoin.CoinPrice.LastPrice = d.result.Last;

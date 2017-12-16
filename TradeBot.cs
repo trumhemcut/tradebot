@@ -10,6 +10,7 @@ namespace tradebot
 {
     public class TradeBot
     {
+        private readonly TimeSpan _timeLeftToSendEmail;
         public decimal BitcoinTradingAmount { get; set; }
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
@@ -18,16 +19,7 @@ namespace tradebot
         public string Coin { get; protected set; }
         public string EmailTo { get; set; }
         private static TradeBot _tradebot;
-        public static TradeBot Instance
-        {
-            get
-            {
-                if (_tradebot == null)
-                    _tradebot = new TradeBot();
 
-                return _tradebot;
-            }
-        }
         public TradeBot()
         {
             this.Coin = "ADA";
@@ -60,9 +52,7 @@ namespace tradebot
                     {
                         var profit = this.CaculateProfit();
                         Console.WriteLine("Time to buy ...");
-                        await EmailHelper.SendEmail($"[TradeBot] Delta = {deltaPrices.Item1}, Profit = {profit}", this.EmailTo, "Buy di pa");
-
-                        Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
+                        await SendMailIfTimePassed(deltaPrices.Item1, profit);                        
                     }
 
                     errorCount = 0;
@@ -83,6 +73,10 @@ namespace tradebot
             }
         }
 
+        private async Task SendMailIfTimePassed(decimal delta, decimal profit)
+        {
+            await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit}", this.EmailTo, "Buy di pa");
+        }
 
         public async Task<Tuple<decimal, decimal>> GetDelta(){
             await UpdateCoinPrices();
