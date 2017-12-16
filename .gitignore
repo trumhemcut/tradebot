@@ -1,4 +1,4 @@
-bin/
-obj/
-.vscode/
-appsettings.dev.json
+src/bin/
+src/obj/
+src/.vscode/
+src/appsettings.dev.json
