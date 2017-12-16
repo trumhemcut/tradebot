@@ -102,11 +102,11 @@ namespace tradebot
 
         public decimal CaculateProfit()
         {
-            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.TradingFee) *
-                                      (this.SellAccount.TradingFee / 100);
+            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
+                                      (1 - this.SellAccount.TradingFee / 100);
             var coinAmountAtSell = bitcoinAmountAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var cointAmountAtBuy = (this.BitcoinTradingAmount - (1 - this.BuyAccount.TradingFee / 100)) *
+            var cointAmountAtBuy = (this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100)) /
                                    this.SellAccount.TradeCoin.CoinPrice.AskPrice;
 
             return cointAmountAtBuy - coinAmountAtSell;
