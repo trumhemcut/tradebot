@@ -38,13 +38,14 @@ namespace tests
                                         resumeAfterExpectedDelta,
                                         emailTo,
                                         buyAccount,
-                                        sellAccount);
+                                        sellAccount,
+                                        false);
 
             tradeBot.BitcoinTradingAmount = 0.5M;
         }
 
         [Fact]
-        public void CaculateProfit_ShouldReturnCorrectPrice()
+        public void AnalyzeDelta_ShouldReturnCorrectPrices()
         {
             // Given
             this.tradeBot.BuyAccount.TradeCoin.CoinPrice = new CoinPrice
@@ -64,11 +65,11 @@ namespace tests
             };
 
             // When
-            var profit = this.tradeBot.CaculateProfit();
+            var tradeInfo = this.tradeBot.AnalyzeDelta();
 
             // Then
-            Assert.True(Math.Floor(profit.Item1) == 562);
-            Assert.True(Math.Floor(profit.Item2) == 36436);
+            Assert.True(Math.Floor(tradeInfo.ProfitQuantity) == 562);
+            Assert.True(Math.Floor(tradeInfo.CoinQuantityAtSell) == 36436);
         }
     }
 }

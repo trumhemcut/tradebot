@@ -19,6 +19,7 @@ namespace tradebot
         public string Coin { get; protected set; }
         public string EmailTo { get; set; }
         private static TradeBot _tradebot;
+        public bool IsAutoTrading { get; set; }
 
         public TradeBot() => this.Coin = "ADA";
         public TradeBot(string coin,
@@ -26,7 +27,8 @@ namespace tradebot
                         int resumeAfterExpectedData,
                         string emailTo,
                         ITradeAccount buyAccount,
-                        ITradeAccount sellAccount)
+                        ITradeAccount sellAccount,
+                        bool isAutoTrading)
         {
             this.Coin = coin;
             this.ExpectedDelta = expectedDelta;
@@ -35,7 +37,34 @@ namespace tradebot
             this.SellAccount = sellAccount;
             this.BuyAccount = buyAccount;
             this._timeLeftToSendEmail = 0;
+            this.IsAutoTrading = true;
         }
+        public TradeInfo AnalyzeDelta()
+        {
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
+
+            var bitcoinQuantityAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
+                                      (1 + this.SellAccount.TradingFee / 100);
+            var coinQuantityAtSell = bitcoinQuantityAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
+
+            var bitcoinQuantityAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
+            var coinQuantityAtBuy = bitcoinQuantityAtBuy / this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+
+            return new TradeInfo
+            {
+                DeltaBidAsk = deltaBidAsk,
+                DeltaBidBid = deltaBidBid,
+                BitcoinQuantityAtSell = bitcoinQuantityAtSell,
+                CoinQuantityAtSell = coinQuantityAtSell,
+                BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
+                CoinQuantityAtBuy = coinQuantityAtBuy,
+                ProfitQuantity = coinQuantityAtBuy - coinQuantityAtSell
+            };
+        }
+
         public async Task Execute()
         {
             int errorCount = 0;
@@ -44,23 +73,34 @@ namespace tradebot
                 try
                 {
                     await UpdateCoinPrices();
-                    var deltaPrices = this.GetDelta();
-                    var profit = this.CaculateProfit();
+
+                    var tradeInfo = AnalyzeDelta();
 
                     var content = $"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
-                                      $"Bid-Bid: {deltaPrices.Item1} * " +
-                                      $"Bid-Ask: {deltaPrices.Item2} * " +
-                                      $"Profit: {Math.Round(profit.Item1)} * " +
-                                      $"AmountToSell: {Math.Round(profit.Item2)}";
+                                      $"B-B: {tradeInfo.DeltaBidBid} * " +
+                                      $"B-A: {tradeInfo.DeltaBidAsk} * " +
+                                      $"Profit: {Math.Round(tradeInfo.ProfitQuantity)} * " +
+                                      $"Sell Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
+                                      $"Buy Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy)}";
                     Console.WriteLine(content);
 
                     // Check to send notification
-                    if (deltaPrices.Item1 >= this.ExpectedDelta)
+                    if (tradeInfo.DeltaBidBid >= this.ExpectedDelta)
                     {
                         Console.Write("Time to buy ...");
+                        if (IsAutoTrading)
+                        {
+                            Console.WriteLine("AutoTrader is initializing...");
+                            var autoTrader = new AutoTrader(
+                                this.SellAccount,
+                                this.BuyAccount,
+                                tradeInfo
+                            ).Trade();
+
+                        }
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...");
-                        await SendMailIfTimePassed(deltaPrices.Item1, profit, content);
+                        await SendMailIfTimePassed(tradeInfo, content);
                     }
 
                     errorCount = 0;
@@ -83,41 +123,18 @@ namespace tradebot
             }
         }
 
-        private async Task SendMailIfTimePassed(decimal delta, Tuple<decimal, decimal> profit, string content)
+        private async Task SendMailIfTimePassed(TradeInfo tradeInfo, string content)
         {
             if (this._timeLeftToSendEmail <= 0)
             {
-                await EmailHelper.SendEmail($"[TradeBot] Delta = {delta}, Profit = {profit.Item1}, AmountToBuy={profit.Item2}", this.EmailTo, content);
+                await EmailHelper.SendEmail($"[TradeBot] Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", this.EmailTo, content);
                 this._timeLeftToSendEmail = 300;
             }
-            
-        }
-
-        public Tuple<decimal, decimal> GetDelta()
-        {
-            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
-
-            return new Tuple<decimal, decimal>(deltaBidBid, deltaBidAsk);
         }
 
         public async Task UpdateCoinPrices()
         {
             await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
-        }
-
-        public Tuple<decimal, decimal> CaculateProfit()
-        {
-            var bitcoinAmountAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
-                                      (1 + this.SellAccount.TradingFee / 100);
-            var coinAmountAtSell = bitcoinAmountAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
-
-            var bitcoinAmountAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
-            var coinAmountAtBuy = bitcoinAmountAtBuy / this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
-
-            return new Tuple<decimal, decimal>(coinAmountAtBuy - coinAmountAtSell, coinAmountAtSell);
         }
     }
 }

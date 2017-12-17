@@ -17,12 +17,18 @@ namespace tradebot
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
+            var isAutoTrading = false;
+            if (args.Length > 2)
+                isAutoTrading = Boolean.Parse(args[2]);
+            else
+                isAutoTrading = Boolean.Parse(Configuration["IsAutoTrading"]);
+            
             decimal expectedDelta = 0;
             if (args.Length > 1)
                 expectedDelta = Decimal.Parse(args[1]);
             else
                 expectedDelta = Decimal.Parse(Configuration["ExpectedDelta"]);
-            
+
             int resumeAfterExpectedDelta = Int32.Parse(Configuration["ResumeAfterDelta"]);
             string emailTo = Configuration["Email:EmailTo"];
 
@@ -53,7 +59,8 @@ namespace tradebot
                                         resumeAfterExpectedDelta,
                                         emailTo,
                                         buyAccount,
-                                        sellAccount);
+                                        sellAccount,
+                                        isAutoTrading);
 
             tradeBot.BitcoinTradingAmount = Decimal.Parse(Configuration["BitcoinTradingAmount"]);
 

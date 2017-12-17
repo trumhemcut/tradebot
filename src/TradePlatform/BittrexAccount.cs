@@ -21,6 +21,8 @@ namespace tradebot.TradePlatform
                               decimal tradingFee,
                               decimal bitcoinTransferFee)
         {
+            BittrexDefaults.SetDefaultApiCredentials("APIKEY", "APISECRET");
+
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
             this.TradingFee = tradingFee;
@@ -43,18 +45,18 @@ namespace tradebot.TradePlatform
             }
         }
 
-        public async Task Buy(decimal quantity, decimal price)
+        public async Task<object> Buy(decimal quantity, decimal price)
         {
-            await this._bittrexClient.PlaceOrderAsync(
+            return await this._bittrexClient.PlaceOrderAsync(
                 OrderType.Buy, 
                 $"BTC-{this.TradeCoin.Token}", 
                 quantity, 
                 price);
         }
 
-        public async Task Sell(decimal quantity, decimal price)
+        public async Task<object> Sell(decimal quantity, decimal price)
         {
-            await this._bittrexClient.PlaceOrderAsync(
+            return await this._bittrexClient.PlaceOrderAsync(
                 OrderType.Sell, 
                 $"BTC-{this.TradeCoin.Token}", 
                 quantity, 

@@ -8,7 +8,7 @@ namespace tradebot.TradePlatform
         Coin Bitcoin { get; set; }
         Coin TradeCoin { get; set; }
         Task UpdatePrices();
-        Task Buy(decimal quantity, decimal price);
-        Task Sell(decimal quantity, decimal price);
+        Task<object> Buy(decimal quantity, decimal price);
+        Task<object> Sell(decimal quantity, decimal price);
     }
 }

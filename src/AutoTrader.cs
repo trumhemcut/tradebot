@@ -7,26 +7,25 @@ namespace tradebot
     {
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
-        public decimal AmountToBuy { get; set; }
-        public decimal PriceToBuy { get; set; }
-        public decimal AmountToSell { get; set; }
-        public decimal PriceToSell { get; set; }
+        public TradeInfo TradeInfo { get; set; }
         public AutoTrader(
             ITradeAccount buyAccount, 
             ITradeAccount sellAccount,
-            decimal amountToBuy,
-            decimal priceToBuy,
-            decimal amountToSell,
-            decimal priceToSell)
+            TradeInfo tradeInfo)
         {
             this.BuyAccount = buyAccount;
             this.BuyAccount = sellAccount;
+            this.TradeInfo = tradeInfo;
         }
         public async Task Trade()
         {
             await Task.WhenAll( 
-                this.BuyAccount.Buy(AmountToBuy, PriceToBuy),
-                this.SellAccount.Sell(AmountToSell, PriceToSell)
+                this.BuyAccount.Buy(
+                    TradeInfo.CoinQuantityAtBuy, 
+                    BuyAccount.TradeCoin.CoinPrice.AskPrice),
+                this.SellAccount.Sell(
+                    TradeInfo.CoinQuantityAtSell, 
+                    SellAccount.TradeCoin.CoinPrice.BidPrice)
             );
         }
     }

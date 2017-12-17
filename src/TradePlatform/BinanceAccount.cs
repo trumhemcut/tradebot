@@ -1,12 +1,15 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Binance.Net;
+using Binance.Net.Objects;
 using Newtonsoft.Json;
 
 namespace tradebot.TradePlatform
 {
     public class BinanceAccount : ITradeAccount
     {
+        private readonly BinanceClient _binanceClient;
         public decimal TradingFee { get; set; }
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
@@ -15,6 +18,8 @@ namespace tradebot.TradePlatform
                               decimal tradingFee,
                               decimal bitcoinTransferFee)
         {
+            BinanceDefaults.SetDefaultApiCredentials("APIKEY", "APISECRET");
+
             // Setup coin
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
@@ -40,14 +45,28 @@ namespace tradebot.TradePlatform
             }
         }
 
-        public Task Buy(decimal amount, decimal price)
+        public async Task<object> Buy(decimal amount, decimal price)
         {
-            throw new NotImplementedException();
+            return await this._binanceClient.PlaceOrderAsync(
+                    $"{this.TradeCoin.Token}BTC",
+                    OrderSide.Buy,
+                    OrderType.Limit,
+                    TimeInForce.GoodTillCancel,
+                    amount,
+                    price
+            );
         }
 
-        public Task Sell(decimal amount, decimal price)
+        public async Task<object> Sell(decimal amount, decimal price)
         {
-            throw new NotImplementedException();
+            return await this._binanceClient.PlaceOrderAsync(
+                    $"{this.TradeCoin.Token}BTC",
+                    OrderSide.Sell,
+                    OrderType.Limit,
+                    TimeInForce.GoodTillCancel,
+                    amount,
+                    price
+            );
         }
     }
 }
