@@ -17,7 +17,12 @@ namespace tradebot
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
-            decimal expectedDelta = Decimal.Parse(Configuration["ExpectedDelta"]);
+            decimal expectedDelta = 0;
+            if (args.Length > 1)
+                expectedDelta = Decimal.Parse(args[1]);
+            else
+                expectedDelta = Decimal.Parse(Configuration["ExpectedDelta"]);
+            
             int resumeAfterExpectedDelta = Int32.Parse(Configuration["ResumeAfterDelta"]);
             string emailTo = Configuration["Email:EmailTo"];
 

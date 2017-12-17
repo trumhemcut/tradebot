@@ -12,7 +12,7 @@ namespace tradebot
         {
             var apiKey = Program.Configuration["Email:ApiKey"];
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("trumhemcut@hotmail.com", "Phi Huynh");
+            var from = new EmailAddress("phi.huynh@nashtechglobal.com", "Phi Huynh");
             var to = new EmailAddress(toAddress, "Phi Huynh");
             var plainTextContent = content;
             var htmlContent = content;
