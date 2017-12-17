@@ -9,7 +9,7 @@ namespace tradebot
         public ITradeAccount SellAccount { get; set; }
         public TradeInfo TradeInfo { get; set; }
         public AutoTrader(
-            ITradeAccount buyAccount, 
+            ITradeAccount buyAccount,
             ITradeAccount sellAccount,
             TradeInfo tradeInfo)
         {
@@ -19,13 +19,14 @@ namespace tradebot
         }
         public async Task Trade()
         {
-            await Task.WhenAll( 
+            var plusPointToWin = 0.00000003M;
+            await Task.WhenAll(
                 this.BuyAccount.Buy(
-                    TradeInfo.CoinQuantityAtBuy, 
-                    BuyAccount.TradeCoin.CoinPrice.AskPrice),
+                    TradeInfo.CoinQuantityAtBuy,
+                    BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin),
                 this.SellAccount.Sell(
-                    TradeInfo.CoinQuantityAtSell, 
-                    SellAccount.TradeCoin.CoinPrice.BidPrice)
+                    TradeInfo.CoinQuantityAtSell,
+                    SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin)
             );
         }
     }
