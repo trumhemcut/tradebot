@@ -15,6 +15,7 @@ namespace tradebot.TradePlatform
                               decimal tradingFee,
                               decimal bitcoinTransferFee)
         {
+            // Setup coin
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
             this.TradingFee = tradingFee;
@@ -37,6 +38,16 @@ namespace tradebot.TradePlatform
                     RetrivalTime = DateTime.Now
                 };
             }
+        }
+
+        public Task Buy(decimal amount, decimal price)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Sell(decimal amount, decimal price)
+        {
+            throw new NotImplementedException();
         }
     }
 }

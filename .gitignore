@@ -6,3 +6,7 @@ tests/bin/
 tests/obj/
 tests/.vscode/
 tests/appsettings.dev.json
+Binance.Net/bin/
+Binance.Net/obj/
+Bittrex.Net/bin/
+Bittrex.Net/obj/

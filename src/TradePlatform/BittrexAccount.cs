@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Bittrex.Net;
+using Bittrex.Net.Objects;
 using Newtonsoft.Json;
 using tradebot.TradePlatform;
 
@@ -10,6 +12,7 @@ namespace tradebot.TradePlatform
 {
     public class BittrexAccount : ITradeAccount
     {
+        private readonly BittrexClient _bittrexClient;
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
         public decimal TradingFee { get; set; }
@@ -38,6 +41,24 @@ namespace tradebot.TradePlatform
                     RetrivalTime = DateTime.Now
                 };
             }
+        }
+
+        public async Task Buy(decimal quantity, decimal price)
+        {
+            await this._bittrexClient.PlaceOrderAsync(
+                OrderType.Buy, 
+                $"BTC-{this.TradeCoin.Token}", 
+                quantity, 
+                price);
+        }
+
+        public async Task Sell(decimal quantity, decimal price)
+        {
+            await this._bittrexClient.PlaceOrderAsync(
+                OrderType.Sell, 
+                $"BTC-{this.TradeCoin.Token}", 
+                quantity, 
+                price);
         }
     }
 }

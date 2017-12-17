@@ -12,4 +12,7 @@
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bittrex.Net\Bittrex.Net.csproj" />
+  </ItemGroup>
 </Project>
