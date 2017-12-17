@@ -58,7 +58,8 @@ namespace tradebot
                     // Check to send notification
                     if (deltaPrices.Item1 >= this.ExpectedDelta)
                     {
-                        Console.WriteLine("Time to buy ...");
+                        Console.Write("Time to buy ...");
+                        Console.Write($"Send email in {_timeLeftToSendEmail}s...");
                         await SendMailIfTimePassed(deltaPrices.Item1, profit, content);
                     }
 
