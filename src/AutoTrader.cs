@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using tradebot.TradePlatform;
 
@@ -28,6 +29,18 @@ namespace tradebot
                     TradeInfo.CoinQuantityAtSell,
                     SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin)
             );
+        }
+
+        public void PrintDashboard(){
+            Console.WriteLine(@"+--------------------------------------+
+                                | SELL              | BUY              |
+                                |-------------------|------------------|
+                                | 0.00002608 BTC    | 0.00002508 BTC   |
+                                | 18,000 ADA        | 17,000 ADA       |
+                                |-------------------|------------------|
+                                | Profit:                              |
+                                +--------------------------------------+
+            ");
         }
     }
 }
