@@ -21,7 +21,7 @@ namespace tradebot
             if (args.Length > 3)
                 tradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), args[3]);
             else
-                tradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), Configuration["SellAtBinanceBuyAtBittrex"]);
+                tradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), Configuration["TradeFlow"]);
 
             var isAutoTrading = false;
             if (args.Length > 2)

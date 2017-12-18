@@ -36,6 +36,8 @@ namespace tradebot
             this.EmailTo = emailTo;
             this._timeLeftToSendEmail = 0;
             this.IsAutoTrading = true;
+            this.BuyAccount = buyAccount;
+            this.SellAccount = sellAccount;
         }
         public TradeInfo AnalyzeDelta()
         {
