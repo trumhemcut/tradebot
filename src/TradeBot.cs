@@ -34,8 +34,6 @@ namespace tradebot
             this.ExpectedDelta = expectedDelta;
             this.ResumeAfterExpectedDelta = resumeAfterExpectedData;
             this.EmailTo = emailTo;
-            this.SellAccount = sellAccount;
-            this.BuyAccount = buyAccount;
             this._timeLeftToSendEmail = 0;
             this.IsAutoTrading = true;
         }

@@ -17,12 +17,18 @@ namespace tradebot
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
+            var tradeFlow = TradeFlow.SellAtBinanceBuyAtBittrex;
+            if (args.Length > 3)
+                tradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), args[3]);
+            else
+                tradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), Configuration["SellAtBinanceBuyAtBittrex"]);
+
             var isAutoTrading = false;
             if (args.Length > 2)
                 isAutoTrading = Boolean.Parse(args[2]);
             else
                 isAutoTrading = Boolean.Parse(Configuration["IsAutoTrading"]);
-            
+
             decimal expectedDelta = 0;
             if (args.Length > 1)
                 expectedDelta = Decimal.Parse(args[1]);
@@ -40,27 +46,33 @@ namespace tradebot
                     throw new Exception("Coin is not supported!");
             }
 
-            var buyAccountTradingFee = Decimal.Parse(Configuration["BuyAccount:TradingFee"]);
-            var buyAccountBitcoinTransferFee = Decimal.Parse(Configuration["BuyAccount:BitcoinTransferFee"]);
-            var buyAccount = new BittrexAccount(
+            var bittrexTradingFee = Decimal.Parse(Configuration["BittrexAccount:TradingFee"]);
+            var bittrexBitcoinTransferFee = Decimal.Parse(Configuration["BittrexAccount:BitcoinTransferFee"]);
+            var bittrexAccount = new BittrexAccount(
                                 coin,
-                                buyAccountTradingFee,
-                                buyAccountBitcoinTransferFee);
+                                bittrexTradingFee,
+                                bittrexBitcoinTransferFee);
 
-            var sellAccountTradingFee = Decimal.Parse(Configuration["SellAccount:TradingFee"]);
-            var sellAccountBitcoinTransferFee = Decimal.Parse(Configuration["SellAccount:BitcoinTransferFee"]);
-            var sellAccount = new BinanceAccount(
+            var binanceTradingFee = Decimal.Parse(Configuration["BinanceAccount:TradingFee"]);
+            var binanceBitcoinTransferFee = Decimal.Parse(Configuration["BinanceAccount:BitcoinTransferFee"]);
+            var binanceAccount = new BinanceAccount(
                                 coin,
-                                sellAccountTradingFee,
-                                sellAccountBitcoinTransferFee);
+                                binanceTradingFee,
+                                binanceBitcoinTransferFee);
+
+            
+
+            var tradeFlowAnalyzer = new TradeFlowAnalyzer(
+                tradeFlow, binanceAccount, bittrexAccount
+            );
 
             var tradeBot = new TradeBot(coin,
-                                        expectedDelta,
-                                        resumeAfterExpectedDelta,
-                                        emailTo,
-                                        buyAccount,
-                                        sellAccount,
-                                        isAutoTrading);
+                            expectedDelta,
+                            resumeAfterExpectedDelta,
+                            emailTo,
+                            tradeFlowAnalyzer.BuyAccount,
+                            tradeFlowAnalyzer.SellAccount,
+                            isAutoTrading);
 
             tradeBot.BitcoinTradingAmount = Decimal.Parse(Configuration["BitcoinTradingAmount"]);
 
