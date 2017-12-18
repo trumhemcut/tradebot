@@ -36,7 +36,7 @@ namespace testconsole
                 var key = Console.ReadKey(false);
                 switch (key.Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.R:
                         tradeAction = TradeAction.ReadyToBuy;
                         break;
                     case ConsoleKey.UpArrow:
@@ -92,31 +92,31 @@ namespace testconsole
                 100
                 ));
 
-                Console.WriteLine(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, Console.CursorTop - 1);
+                // Console.WriteLine(new string(' ', Console.WindowWidth));
+                // Console.SetCursorPosition(0, Console.CursorTop - 1);
                 switch (tradeAction)
                 {
                     case TradeAction.Buy:
-                        Console.WriteLine("BUY FOR NOW");
+                        Console.WriteLine("BUY FOR NOW                  ");
                         break;
                     case TradeAction.BuyPriceDown:
-                        Console.WriteLine("BUY PRICE DOWN 1-");
+                        Console.WriteLine("BUY PRICE DOWN 1-            ");
                         break;
 
                     case TradeAction.BuyPriceUp:
-                        Console.WriteLine("BUY PRICE UP 1+");
+                        Console.WriteLine("BUY PRICE UP 1+              ");
                         break;
 
                     case TradeAction.SellPriceDown:
-                        Console.WriteLine("SELL PRICE DOWN 1-");
+                        Console.WriteLine("SELL PRICE DOWN 1-           ");
                         break;
 
                     case TradeAction.SellPriceUp:
-                        Console.WriteLine("SELL PRICE UP 1+");
+                        Console.WriteLine("SELL PRICE UP 1+             ");
                         break;
 
                     case TradeAction.ReadyToBuy:
-                        Console.WriteLine("READY TO BUY");
+                        Console.WriteLine("READY TO BUY                 ");
                         break;
 
                     default:
@@ -125,7 +125,7 @@ namespace testconsole
                 
                 Console.SetCursorPosition(left, top);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(300);
             }
         }
     }
