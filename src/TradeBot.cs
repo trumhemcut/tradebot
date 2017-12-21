@@ -127,7 +127,7 @@ namespace tradebot
         {
             if (this._timeLeftToSendEmail <= 0)
             {
-                await EmailHelper.SendEmail($"[TradeBot] Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", this.EmailTo, content);
+                await EmailHelper.SendEmail($"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", this.EmailTo, content);
                 this._timeLeftToSendEmail = 300;
             }
         }
