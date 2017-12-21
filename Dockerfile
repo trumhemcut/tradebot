@@ -16,3 +16,4 @@ FROM microsoft/dotnet:runtime
 WORKDIR /app
 COPY --from=build-env /app/src/out ./
 ENTRYPOINT ["dotnet", "tradebot.dll"]
+CMD [ "ADA 0.00000100" ]
