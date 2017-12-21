@@ -42,8 +42,9 @@ namespace tradebot
             if (args.Length > 0)
             {
                 coin = args[0];
-                if (!"ADA|XLM|XRP".Contains(coin))
-                    throw new Exception("Coin is not supported!");
+                // Basically it can support any coins
+                // if (!"ADA|XLM|XRP|XVG".Contains(coin))
+                //     throw new Exception("Coin is not supported!");
             }
 
             var bittrexTradingFee = Decimal.Parse(Configuration["BittrexAccount:TradingFee"]);
