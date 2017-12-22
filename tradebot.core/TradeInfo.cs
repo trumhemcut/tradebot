@@ -1,4 +1,4 @@
-namespace tradebot
+namespace tradebot.core
 {
     public class TradeInfo
     {

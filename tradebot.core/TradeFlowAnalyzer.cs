@@ -1,4 +1,4 @@
-using tradebot.TradePlatform;
+using tradebot.core;
 
 namespace tradebot
 {

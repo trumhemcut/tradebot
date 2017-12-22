@@ -4,13 +4,13 @@ using Microsoft.Extensions.Configuration;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
-namespace tradebot
+namespace tradebot.core
 {
     public static class EmailHelper
     {
-        public async static Task SendEmail(string subject, string toAddress, string content)
+        public async static Task SendEmail(
+            string subject, string toAddress, string content, string apiKey)
         {
-            var apiKey = Program.Configuration["Email:ApiKey"];
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress("phi.huynh@nashtechglobal.com", "Phi Huynh");
             var to = new EmailAddress(toAddress, "Phi Huynh");

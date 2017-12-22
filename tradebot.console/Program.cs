@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
-using tradebot.TradePlatform;
+using tradebot.core;
 
-namespace tradebot
+namespace tradebot.console
 {
     class Program
     {

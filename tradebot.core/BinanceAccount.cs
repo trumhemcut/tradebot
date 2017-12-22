@@ -5,7 +5,7 @@ using Binance.Net;
 using Binance.Net.Objects;
 using Newtonsoft.Json;
 
-namespace tradebot.TradePlatform
+namespace tradebot.core
 {
     public class BinanceAccount : ITradeAccount
     {

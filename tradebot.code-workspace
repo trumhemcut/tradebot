@@ -1,28 +1,28 @@
 {
 	"folders": [
 		{
-			"path": "src"
-		},
-		{
-			"path": "tests"
-		},
-		{
-			"path": "."
-		},
-		{
 			"path": "Bittrex.Net"
 		},
 		{
 			"path": "Binance.Net"
 		},
 		{
-			"path": "testconsole"
-		},
-		{
 			"path": "tradebot.core"
 		},
 		{
 			"path": "tradebot.api"
+		},
+		{
+			"path": "tradebot.console"
+		},
+		{
+			"path": "tradebot.testconsole"
+		},
+		{
+			"path": "tradebot.tests"
+		},
+		{
+			"path": "."
 		}
 	]
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace tradebot
+namespace tradebot.core
 {
     public class CoinPrice
     {

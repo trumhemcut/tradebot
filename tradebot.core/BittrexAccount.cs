@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using Bittrex.Net;
 using Bittrex.Net.Objects;
 using Newtonsoft.Json;
-using tradebot.TradePlatform;
 
-namespace tradebot.TradePlatform
+namespace tradebot.core
 {
     public class BittrexAccount : ITradeAccount
     {

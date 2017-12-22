@@ -4,12 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using tradebot.TradePlatform;
 
-namespace tradebot
+namespace tradebot.core
 {
     public class TradeBot
     {
+        public string MailApiKey { get; set; }
         private int _timeLeftToSendEmail;
         public decimal BitcoinTradingAmount { get; set; }
         public ITradeAccount BuyAccount { get; set; }
@@ -115,7 +115,11 @@ namespace tradebot
                     errorCount++;
                     if (errorCount > 100)
                     {
-                        await EmailHelper.SendEmail($"[TradeBot] Program Error, Please double check", this.EmailTo, ex.Message);
+                        await EmailHelper.SendEmail(
+                            $"[TradeBot] Program Error, Please double check", 
+                            this.EmailTo, 
+                            ex.Message,
+                            this.MailApiKey);
                         Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
                     }
                     Thread.Sleep(2000);
@@ -127,7 +131,11 @@ namespace tradebot
         {
             if (this._timeLeftToSendEmail <= 0)
             {
-                await EmailHelper.SendEmail($"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", this.EmailTo, content);
+                await EmailHelper.SendEmail(
+                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", 
+                    this.EmailTo, 
+                    content,
+                    this.MailApiKey);
                 this._timeLeftToSendEmail = 300;
             }
         }

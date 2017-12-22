@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using tradebot.TradePlatform;
 
-namespace tradebot
+namespace tradebot.core
 {
     public class AutoTrader
     {

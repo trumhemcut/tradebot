@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace tradebot.TradePlatform
+namespace tradebot.core
 {
     public interface ITradeAccount
     {
