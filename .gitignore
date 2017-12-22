@@ -12,3 +12,7 @@ Bittrex.Net/bin/
 Bittrex.Net/obj/
 testconsole/bin
 testconsole/obj
+tradebot.core/bin
+tradebot.core/obj
+tradebot.api/core
+tradebot.api/obj

@@ -17,6 +17,12 @@
 		},
 		{
 			"path": "testconsole"
+		},
+		{
+			"path": "tradebot.core"
+		},
+		{
+			"path": "tradebot.api"
 		}
 	]
 }
