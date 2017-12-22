@@ -76,8 +76,8 @@ namespace tradebot
 
                     var tradeInfo = AnalyzeDelta();
 
-                    var content = $"Bittrex: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
-                                      $"Binance: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                    var content = $"{Coin} - Bit: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                                      $"Bin: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"B-B: {tradeInfo.DeltaBidBid} * " +
                                       $"B-A: {tradeInfo.DeltaBidAsk} * " +
                                       $"Profit: {Math.Round(tradeInfo.ProfitQuantity)} * " +
