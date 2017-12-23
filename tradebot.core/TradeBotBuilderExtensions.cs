@@ -10,7 +10,7 @@ namespace tradebot.core
             // dotnet run ADA 0.0000100
 
             if (args.Length > 0)
-                tradeBotBuilder.UseSetting("Email:EmailTo", args[0]);
+                tradeBotBuilder.UseSetting("Coin", args[0]);
 
             if (args.Length > 1)
                 tradeBotBuilder.UseSetting("ExpectedDelta", args[1]);

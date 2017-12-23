@@ -19,6 +19,7 @@ namespace tradebot.core
 
         public TradeBotOptions(IConfiguration configuration)
         {
+            this.Coin = configuration["Coin"];
             this.IsAutoTrading = Boolean.Parse(configuration["IsAutoTrading"]);
             this.ExpectedDelta = Decimal.Parse(configuration["ExpectedDelta"]);
             this.EmailTo = configuration["Email:EmailTo"];
