@@ -4,16 +4,19 @@ WORKDIR /app
 
 COPY . ./
 
-WORKDIR /app/src
+WORKDIR /app/tradebot.console
 RUN dotnet restore
 
 RUN dotnet publish -c Release -o out
-RUN ls ./out/
-COPY ./src/appsettings.dev.json ./out/appsettings.dev.json
+
+# Use your own setting here
+COPY ./tradebot.console/appsettings.dev.json ./out/appsettings.dev.json
 
 # build runtime image
 FROM microsoft/dotnet:runtime 
 WORKDIR /app
-COPY --from=build-env /app/src/out ./
+COPY --from=build-env /app/tradebot.console/out ./
 ENTRYPOINT ["dotnet", "tradebot.dll"]
+
+# ADA by default
 CMD [ "ADA 0.00000100" ]
