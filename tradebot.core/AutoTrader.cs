@@ -14,12 +14,15 @@ namespace tradebot.core
             TradeInfo tradeInfo)
         {
             this.BuyAccount = buyAccount;
-            this.BuyAccount = sellAccount;
+            this.SellAccount = sellAccount;
             this.TradeInfo = tradeInfo;
         }
         public async Task Trade()
         {
-            var plusPointToWin = 0.00000003M;
+            // TODO: REMOVE this line on production
+            var plusPointToWin = -0.00000013M;
+            
+            // var plusPointToWin = 0.00000003M;
             await Task.WhenAll(
                 this.BuyAccount.Buy(
                     TradeInfo.CoinQuantityAtBuy,
@@ -30,7 +33,8 @@ namespace tradebot.core
             );
         }
 
-        public void PrintDashboard(){
+        public void PrintDashboard()
+        {
             Console.WriteLine(@"+--------------------------------------+
                                 | SELL              | BUY              |
                                 |-------------------|------------------|

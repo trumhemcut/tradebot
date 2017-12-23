@@ -80,11 +80,12 @@ namespace tradebot.core
                         {
                             Console.WriteLine("AutoTrader is initializing...");
                             var autoTrader = new AutoTrader(
-                                this.SellAccount,
-                                this.BuyAccount,
-                                tradeInfo
-                            ).Trade();
-
+                                sellAccount: SellAccount,
+                                buyAccount: BuyAccount,
+                                tradeInfo: tradeInfo
+                            );
+                            await autoTrader.Trade();
+                            return;
                         }
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...");
                         await SendMailIfTimePassed(tradeInfo, content);

@@ -64,14 +64,19 @@ namespace tradebot.core
             var bittrexAccount = new BittrexAccount(
                                 this._options.Coin,
                                 bittrexTradingFee,
-                                bittrexBitcoinTransferFee);
+                                bittrexBitcoinTransferFee,
+                                _configuration["BittrexAccount:API_KEY"],
+                                _configuration["BittrexAccount:API_SECRET"]);
 
             var binanceTradingFee = Decimal.Parse(_configuration["BinanceAccount:TradingFee"]);
             var binanceBitcoinTransferFee = Decimal.Parse(_configuration["BinanceAccount:BitcoinTransferFee"]);
             var binanceAccount = new BinanceAccount(
                                 this._options.Coin,
                                 binanceTradingFee,
-                                binanceBitcoinTransferFee);
+                                binanceBitcoinTransferFee,
+                                _configuration["BinanceAccount:API_KEY"],
+                                _configuration["BinanceAccount:API_SECRET"]);
+
 
             var tradeFlowAnalyzer = new TradeFlowAnalyzer(
                 this._options.TradeFlow, binanceAccount, bittrexAccount

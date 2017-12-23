@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace tradebot.core
 {
     public class Coin
@@ -7,5 +9,8 @@ namespace tradebot.core
         public decimal TransferFee { get; set; }
         public CoinPrice CoinPrice { get; set; }
         public string Address { get; set; }
+        // Latest 3 coinprices (both bid & ask)
+        public List<CoinPrice> CoinPrices { get; set; }
+
     }
 }

@@ -11,16 +11,17 @@ namespace tradebot.core
 {
     public class BittrexAccount : ITradeAccount
     {
-        private readonly BittrexClient _bittrexClient;
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
         public decimal TradingFee { get; set; }
 
         public BittrexAccount(string coin,
                               decimal tradingFee,
-                              decimal bitcoinTransferFee)
+                              decimal bitcoinTransferFee,
+                              string apiKey,
+                              string apiSecret)
         {
-            BittrexDefaults.SetDefaultApiCredentials("APIKEY", "APISECRET");
+            BittrexDefaults.SetDefaultApiCredentials(apiKey, apiSecret);
 
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
@@ -46,20 +47,37 @@ namespace tradebot.core
 
         public async Task<object> Buy(decimal quantity, decimal price)
         {
-            return await this._bittrexClient.PlaceOrderAsync(
-                OrderType.Buy, 
-                $"BTC-{this.TradeCoin.Token}", 
-                quantity, 
-                price);
+            using (var bittrexClient = new BittrexClient())
+            {
+                // REMOVE THIS LINE WHEN PRODUCTION
+                quantity = 1M; // FOR TESTING
+
+                var result = await bittrexClient.PlaceOrderAsync(
+                    OrderType.Buy,
+                    $"BTC-{this.TradeCoin.Token}",
+                    quantity,
+                    price);
+
+                return result;
+
+            }
         }
 
         public async Task<object> Sell(decimal quantity, decimal price)
         {
-            return await this._bittrexClient.PlaceOrderAsync(
-                OrderType.Sell, 
-                $"BTC-{this.TradeCoin.Token}", 
-                quantity, 
-                price);
+            using (var bittrexClient = new BittrexClient())
+            {
+                // REMOVE THIS LINE WHEN PRODUCTION
+                quantity = 1M; // FOR TESTING
+
+                var result = await bittrexClient.PlaceOrderAsync(
+                    OrderType.Sell,
+                    $"BTC-{this.TradeCoin.Token}",
+                    quantity,
+                    price);
+                
+                return result;
+            }
         }
     }
 }

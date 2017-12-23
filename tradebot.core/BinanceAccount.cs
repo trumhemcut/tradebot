@@ -16,9 +16,11 @@ namespace tradebot.core
 
         public BinanceAccount(string coin,
                               decimal tradingFee,
-                              decimal bitcoinTransferFee)
+                              decimal bitcoinTransferFee,
+                              string apiKey,
+                              string apiSecret)
         {
-            BinanceDefaults.SetDefaultApiCredentials("APIKEY", "APISECRET");
+            BinanceDefaults.SetDefaultApiCredentials(apiKey, apiSecret);
 
             // Setup coin
             this.TradeCoin = new Coin { Token = coin };
@@ -47,26 +49,47 @@ namespace tradebot.core
 
         public async Task<object> Buy(decimal amount, decimal price)
         {
-            return await this._binanceClient.PlaceOrderAsync(
-                    $"{this.TradeCoin.Token}BTC",
-                    OrderSide.Buy,
-                    OrderType.Limit,
-                    TimeInForce.GoodTillCancel,
-                    amount,
-                    price
-            );
+            using (var binanceClient = new BinanceClient())
+            {
+                // REMOVE THIS LINE WHEN PRODUCTION
+                // MIN OF ORDER IS 0.01 BTC
+                // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
+                amount = Math.Round(0.01M / price); // FOR TESTING
+
+                var result = await binanceClient.PlaceOrderAsync(
+                        $"{this.TradeCoin.Token}BTC",
+                        OrderSide.Buy,
+                        OrderType.Limit,
+                        TimeInForce.GoodTillCancel,
+                        amount,
+                        price
+                );
+
+                return result;
+            }
+
         }
 
         public async Task<object> Sell(decimal amount, decimal price)
         {
-            return await this._binanceClient.PlaceOrderAsync(
-                    $"{this.TradeCoin.Token}BTC",
-                    OrderSide.Sell,
-                    OrderType.Limit,
-                    TimeInForce.GoodTillCancel,
-                    amount,
-                    price
-            );
+            using (var binanceClient = new BinanceClient())
+            {
+                // REMOVE THIS LINE WHEN PRODUCTION
+                // MIN OF ORDER IS 0.01 BTC
+                // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
+                amount = Math.Round(0.01M / price); // FOR TESTING
+
+                var result = await binanceClient.PlaceOrderAsync(
+                        $"{this.TradeCoin.Token}BTC",
+                        OrderSide.Sell,
+                        OrderType.Limit,
+                        TimeInForce.GoodTillCancel,
+                        amount,
+                        price
+                );
+
+                return result;
+            }
         }
     }
 }
