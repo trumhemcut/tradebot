@@ -6,8 +6,7 @@ namespace tradebot.core
     public class TradeBotBuilder : ITradeBotBuilder
     {
         private IConfiguration _configuration;
-
-        private Action<IConfigurationBuilder> _configureDelegate;
+        private IConfigurationBuilder _configurationBuilder;
         private TradeBotOptions _options;
 
         public TradeBotBuilder()
@@ -16,12 +15,6 @@ namespace tradebot.core
 
         public ITradeBot Build()
         {
-            var configurationBuilder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory());
-
-            _configureDelegate(configurationBuilder);
-            this._configuration = configurationBuilder.Build();
-
             this._options = new TradeBotOptions(this._configuration);
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
@@ -34,7 +27,11 @@ namespace tradebot.core
 
         public ITradeBotBuilder Configure(Action<IConfigurationBuilder> configureDelegate)
         {
-            this._configureDelegate = configureDelegate;
+            this._configurationBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory());
+
+            configureDelegate(_configurationBuilder);
+            this._configuration = this._configurationBuilder.Build();
 
             return this;
         }
@@ -46,19 +43,22 @@ namespace tradebot.core
             return this;
         }
 
-        public ITradeBotBuilder SetBuyAccount(ITradeAccount buyAccount){
+        public ITradeBotBuilder SetBuyAccount(ITradeAccount buyAccount)
+        {
             this._options.BuyAccount = buyAccount;
 
             return this;
         }
 
-        public ITradeBotBuilder SetSellAccount(ITradeAccount sellAccount){
+        public ITradeBotBuilder SetSellAccount(ITradeAccount sellAccount)
+        {
             this._options.SellAccount = sellAccount;
 
             return this;
         }
 
-        private TradeFlowAnalyzer AnalyzeTradeFlow(){
+        private TradeFlowAnalyzer AnalyzeTradeFlow()
+        {
             var bittrexTradingFee = Decimal.Parse(_configuration["BittrexAccount:TradingFee"]);
             var bittrexBitcoinTransferFee = Decimal.Parse(_configuration["BittrexAccount:BitcoinTransferFee"]);
             var bittrexAccount = new BittrexAccount(
