@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Bittrex.Net\Bittrex.Net.csproj" />
     <ProjectReference Include="..\Binance.Net\Binance.Net.csproj" />
+    <ProjectReference Include="..\tradebot.core\tradebot.core.csproj" />
   </ItemGroup>
 </Project>

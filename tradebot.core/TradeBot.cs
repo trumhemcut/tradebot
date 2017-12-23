@@ -7,37 +7,24 @@ using Newtonsoft.Json.Linq;
 
 namespace tradebot.core
 {
-    public class TradeBot
+    public class TradeBot : ITradeBot
     {
-        public string MailApiKey { get; set; }
         private int _timeLeftToSendEmail;
-        public decimal BitcoinTradingAmount { get; set; }
-        public ITradeAccount BuyAccount { get; set; }
-        public ITradeAccount SellAccount { get; set; }
-        public int ResumeAfterExpectedDelta { get; protected set; }
-        public decimal ExpectedDelta { get; protected set; }
-        public string Coin { get; protected set; }
-        public string EmailTo { get; set; }
-        private static TradeBot _tradebot;
-        public bool IsAutoTrading { get; set; }
-
-        public TradeBot() => this.Coin = "ADA";
-        public TradeBot(string coin,
-                        decimal expectedDelta,
-                        int resumeAfterExpectedData,
-                        string emailTo,
-                        ITradeAccount buyAccount,
-                        ITradeAccount sellAccount,
-                        bool isAutoTrading)
+        public ITradeAccount BuyAccount { get { return this._options.BuyAccount; } }
+        public ITradeAccount SellAccount { get { return this._options.SellAccount; } }
+        public string MailApiKey { get { return this._options.MailApiKey; } }
+        public decimal BitcoinTradingAmount { get { return this._options.BitcoinTradingAmount; } }
+        public int ResumeAfterExpectedDelta { get { return this._options.ResumeAfterExpectedDelta; } }
+        public decimal ExpectedDelta { get { return this._options.ExpectedDelta; } }
+        public string EmailTo { get { return this._options.EmailTo; } }
+        public bool IsAutoTrading { get { return this._options.IsAutoTrading; } }
+        public string Coin { get { return this._options.Coin; } }
+        private readonly TradeBotOptions _options;
+        public TradeBot() { }
+        public TradeBot(TradeBotOptions options)
         {
-            this.Coin = coin;
-            this.ExpectedDelta = expectedDelta;
-            this.ResumeAfterExpectedDelta = resumeAfterExpectedData;
-            this.EmailTo = emailTo;
             this._timeLeftToSendEmail = 0;
-            this.IsAutoTrading = true;
-            this.BuyAccount = buyAccount;
-            this.SellAccount = sellAccount;
+            this._options = options;
         }
         public TradeInfo AnalyzeDelta()
         {
@@ -116,8 +103,8 @@ namespace tradebot.core
                     if (errorCount > 100)
                     {
                         await EmailHelper.SendEmail(
-                            $"[TradeBot] Program Error, Please double check", 
-                            this.EmailTo, 
+                            $"[TradeBot] Program Error, Please double check",
+                            this.EmailTo,
                             ex.Message,
                             this.MailApiKey);
                         Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
@@ -132,8 +119,8 @@ namespace tradebot.core
             if (this._timeLeftToSendEmail <= 0)
             {
                 await EmailHelper.SendEmail(
-                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}", 
-                    this.EmailTo, 
+                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}",
+                    this.EmailTo,
                     content,
                     this.MailApiKey);
                 this._timeLeftToSendEmail = 300;
