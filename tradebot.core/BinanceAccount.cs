@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Binance.Net;
@@ -54,6 +55,15 @@ namespace tradebot.core
             using (var binanceClient = new BinanceClient())
             {
                 var accountInfo = await binanceClient.GetAccountInfoAsync();
+                this.Bitcoin.Balance = accountInfo.Data.Balances
+                    .Where(balance => balance.Asset.Equals(this.Bitcoin.Token))
+                    .Single()
+                    .Total;
+
+                this.TradeCoin.Balance = accountInfo.Data.Balances
+                    .Where(balance => balance.Asset.Equals(this.TradeCoin.Token))
+                    .Single()
+                    .Total;
             }
         }
 

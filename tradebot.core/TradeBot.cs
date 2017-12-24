@@ -120,14 +120,10 @@ namespace tradebot.core
             }
         }
 
-        public async Task UpdateCoinPrices()
-        {
+        public async Task UpdateCoinPrices() =>
             await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
-        }
 
-        public async Task UpdateBalances()
-        {
+        public async Task UpdateBalances() =>
             await Task.WhenAll(this.BuyAccount.UpdateBalances(), this.SellAccount.UpdateBalances());
-        }
     }
 }

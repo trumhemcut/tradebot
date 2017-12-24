@@ -52,8 +52,11 @@ namespace tradebot.core
         public async Task UpdateBalances(){
             using (var bittrextClient = new BittrexClient())
             {
-                var coinBalance = await bittrextClient.GetBalanceAsync(this.TradeCoin.Token);
-                var bitcoinBalance = await bittrextClient.GetBalanceAsync(this.Bitcoin.Token);
+                var coinBalanceResult = await bittrextClient.GetBalanceAsync(this.TradeCoin.Token);
+                this.Bitcoin.Balance = coinBalanceResult.Result.Balance;
+
+                var bitcoinBalanceResult = await bittrextClient.GetBalanceAsync(this.Bitcoin.Token);
+                this.TradeCoin.Balance = bitcoinBalanceResult.Result.Balance;
             }
         }
         public async Task<object> Buy(decimal quantity, decimal price)
