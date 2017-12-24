@@ -19,6 +19,7 @@ namespace tradebot.core
         public string EmailTo { get { return this._options.EmailTo; } }
         public bool IsAutoTrading { get { return this._options.IsAutoTrading; } }
         public string Coin { get { return this._options.Coin; } }
+        public TradeMode TradeMode { get { return this._options.TradeMode; } }
         private readonly TradeBotOptions _options;
         public TradeBot() { }
         public TradeBot(TradeBotOptions options)
@@ -26,32 +27,6 @@ namespace tradebot.core
             this._timeLeftToSendEmail = 0;
             this._options = options;
         }
-        public TradeInfo AnalyzeDelta()
-        {
-            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
-
-            var bitcoinQuantityAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
-                                      (1 + this.SellAccount.TradingFee / 100);
-            var coinQuantityAtSell = bitcoinQuantityAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
-
-            var bitcoinQuantityAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
-            var coinQuantityAtBuy = bitcoinQuantityAtBuy / this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
-
-            return new TradeInfo
-            {
-                DeltaBidAsk = deltaBidAsk,
-                DeltaBidBid = deltaBidBid,
-                BitcoinQuantityAtSell = bitcoinQuantityAtSell,
-                CoinQuantityAtSell = coinQuantityAtSell,
-                BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
-                CoinQuantityAtBuy = coinQuantityAtBuy,
-                ProfitQuantity = coinQuantityAtBuy - coinQuantityAtSell
-            };
-        }
-
         public async Task Execute()
         {
             int errorCount = 0;
@@ -61,13 +36,26 @@ namespace tradebot.core
                 {
                     await UpdateCoinPrices();
 
-                    var tradeInfo = AnalyzeDelta();
+                    TradeInfo tradeInfo = null;
+
+                    switch (this.TradeMode)
+                    {
+                        case TradeMode.FinegrainedTrade:
+                            tradeInfo = new TradeInfoAnalyzer(this._options)
+                                            .AnalyzeDeltaFinegrainedMode();
+                            break;
+                        case TradeMode.NormalTrade:
+                        default:
+                            tradeInfo = new TradeInfoAnalyzer(this._options)
+                                            .AnalyzeDeltaNormalMode();
+                            break;
+                    }
 
                     var content = $"{Coin} - Bit: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"Bin: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"B-B: {tradeInfo.DeltaBidBid} * " +
                                       $"B-A: {tradeInfo.DeltaBidAsk} * " +
-                                      $"Profit: {Math.Round(tradeInfo.ProfitQuantity)} * " +
+                                      $"Profit: {Math.Round(tradeInfo.CoinProfit)} * " +
                                       $"Sell Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
                                       $"Buy Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy)}";
                     Console.WriteLine(content);
@@ -120,7 +108,7 @@ namespace tradebot.core
             if (this._timeLeftToSendEmail <= 0)
             {
                 await EmailHelper.SendEmail(
-                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.ProfitQuantity}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}",
+                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.CoinProfit}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}",
                     this.EmailTo,
                     content,
                     this.MailApiKey);

@@ -8,6 +8,7 @@ namespace tradebot.core
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
         public TradeInfo TradeInfo { get; set; }
+        public TradeInfo FinegrainedTradeInfo { get; set; }
         public AutoTrader(
             ITradeAccount buyAccount,
             ITradeAccount sellAccount,
@@ -17,11 +18,28 @@ namespace tradebot.core
             this.SellAccount = sellAccount;
             this.TradeInfo = tradeInfo;
         }
-        public async Task Trade()
+
+        public async Task FinegrainedTrade()
         {
             // TODO: REMOVE this line on production
             var plusPointToWin = -0.00000013M;
-            
+
+            await this.BuyAccount.Buy(
+                    FinegrainedTradeInfo.CoinQuantityAtBuy,
+                    BuyAccount.CurrentAskPrice + plusPointToWin);
+
+            await this.SellAccount.Sell(
+                    FinegrainedTradeInfo.CoinQuantityAtSell,
+                    SellAccount.CurrentBidPrice - plusPointToWin);
+        }
+
+        public async Task Trade()
+        {
+            // TODO: Check balance enough to sell / buy
+
+            // TODO: REMOVE this line on production
+            var plusPointToWin = -0.00000013M;
+
             // var plusPointToWin = 0.00000003M;
             await Task.WhenAll(
                 this.BuyAccount.Buy(

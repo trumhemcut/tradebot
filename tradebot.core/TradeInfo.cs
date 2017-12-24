@@ -8,6 +8,7 @@ namespace tradebot.core
         public decimal CoinQuantityAtSell { get; set; }
         public decimal BitcoinQuantityAtBuy { get; set; }
         public decimal CoinQuantityAtBuy { get; set; }
-        public decimal ProfitQuantity { get; set; }
+        public decimal CoinProfit { get; set; }
+        public decimal BitcoinProfit { get; set; }
     }
 }

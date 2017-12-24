@@ -35,6 +35,5 @@ namespace tradebot.core
 
             return tradeBotBuilder;
         }
-
     }
 }

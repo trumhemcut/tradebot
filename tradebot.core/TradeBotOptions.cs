@@ -15,6 +15,7 @@ namespace tradebot.core
         public TradeFlow TradeFlow { get; set; }
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
+        public TradeMode TradeMode { get; set; }
         public TradeBotOptions() { }
 
         public TradeBotOptions(IConfiguration configuration)
@@ -26,8 +27,8 @@ namespace tradebot.core
             this.ResumeAfterExpectedDelta = Int32.Parse(configuration["ResumeAfterDelta"]);
             this.BitcoinTradingAmount = Decimal.Parse(configuration["BitcoinTradingAmount"]);
             this.MailApiKey = configuration["Email:ApiKey"];
-            this.MailApiKey = configuration["Email:ApiKey"];
             this.TradeFlow = (TradeFlow)Enum.Parse(typeof(TradeFlow), configuration["TradeFlow"]);
+            this.TradeMode = (TradeMode)Enum.Parse(typeof(TradeMode), configuration["TradeMode"]);
         }
     }
 }

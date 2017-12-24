@@ -14,6 +14,10 @@ namespace tradebot.core
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
 
+        public decimal CurrentAskPrice { get { return this.TradeCoin.CoinPrice.AskPrice; } }
+        public decimal CurrentBidPrice { get { return this.TradeCoin.CoinPrice.BidPrice; } }
+        public decimal CurrentBidQty { get { return this.TradeCoin.CoinPrice.BidQuantity; } }
+        public decimal CurrentAskQty { get { return this.TradeCoin.CoinPrice.AskQuantity; } }
         public BinanceAccount(string coin,
                               decimal tradingFee,
                               decimal bitcoinTransferFee,
