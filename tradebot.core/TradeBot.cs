@@ -73,8 +73,10 @@ namespace tradebot.core
                                 buyAccount: BuyAccount,
                                 tradeInfo: tradeInfo
                             );
-                            await autoTrader.Trade();
 
+                            await autoTrader.Trade();
+                            await WaitUntilOrdersAreMatched(tradeInfo);
+                            
                             // Currently, we stop it to make sure everything works fine
                             // TODO: Continuous trading here until balances are empty
                             return;
@@ -104,6 +106,36 @@ namespace tradebot.core
                     }
                     Thread.Sleep(2000);
                 }
+            }
+        }
+
+        public async Task WaitUntilOrdersAreMatched(TradeInfo tradeInfo)
+        {
+            var sellWasMatched = false;
+            var buyWasMatched = false;
+
+            while (true)
+            {
+                await UpdateCoinPrices();
+
+                if (this.SellAccount.TradeCoin.CoinPrice.AskPrice > tradeInfo.SellPrice)
+                {
+                    Console.WriteLine("Sell order was matched.");
+                    sellWasMatched = true;
+                }
+
+                if (this.BuyAccount.TradeCoin.CoinPrice.AskPrice > tradeInfo.SellPrice)
+                {
+                    Console.WriteLine("Sell order was matched.");
+                    sellWasMatched = true;
+                }
+                if (sellWasMatched && buyWasMatched)
+                {
+                    Console.WriteLine("SUCCESSFUL! Sell & buy were matched.");
+                    break;
+                }
+
+                Thread.Sleep(500);
             }
         }
 

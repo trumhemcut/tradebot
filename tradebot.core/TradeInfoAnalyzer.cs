@@ -77,7 +77,9 @@ namespace tradebot.core
                 CoinQuantityAtSell = coinQuantityAtSell,
                 BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
                 CoinQuantityAtBuy = coinQuantityAtBuy,
-                CoinProfit = coinQuantityAtBuy - coinQuantityAtSell
+                CoinProfit = coinQuantityAtBuy - coinQuantityAtSell,
+                BuyPrice = this._buyAccount.TradeCoin.CoinPrice.AskPrice,
+                SellPrice = this._sellAccount.TradeCoin.CoinPrice.BidPrice
             };
         }
     }

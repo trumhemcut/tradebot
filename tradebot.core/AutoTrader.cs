@@ -21,20 +21,31 @@ namespace tradebot.core
 
         public async Task Trade()
         {
-            // TODO: Check balance enough to sell / buy
-
             // TODO: REMOVE this line on production
+            // Why 13? Well, I like this number :)
             var plusPointToWin = -0.00000013M;
 
-            // var plusPointToWin = 0.00000003M;
-            await Task.WhenAll(
-                this.BuyAccount.Buy(
+            try
+            {
+                var buyPrice = BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin;
+                
+                Console.WriteLine($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
+                var buyResult = this.BuyAccount.Buy(
                     TradeInfo.CoinQuantityAtBuy,
-                    BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin),
-                this.SellAccount.Sell(
+                    BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin);
+                if (buyResult.IsCompleted) Console.WriteLine("BUY ORDER SET");
+                    
+                var sellPrice = SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin;
+                Console.WriteLine($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
+                await this.SellAccount.Sell(
                     TradeInfo.CoinQuantityAtSell,
-                    SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin)
-            );
+                    sellPrice);
+                if (buyResult.IsCompleted) Console.WriteLine("SELL ORDER SET");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Set order error: {ex.Message}");
+            }
         }
 
         public void PrintDashboard()
