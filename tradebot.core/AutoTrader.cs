@@ -19,20 +19,6 @@ namespace tradebot.core
             this.TradeInfo = tradeInfo;
         }
 
-        public async Task FinegrainedTrade()
-        {
-            // TODO: REMOVE this line on production
-            var plusPointToWin = -0.00000013M;
-
-            await this.BuyAccount.Buy(
-                    FinegrainedTradeInfo.CoinQuantityAtBuy,
-                    BuyAccount.CurrentAskPrice + plusPointToWin);
-
-            await this.SellAccount.Sell(
-                    FinegrainedTradeInfo.CoinQuantityAtSell,
-                    SellAccount.CurrentBidPrice - plusPointToWin);
-        }
-
         public async Task Trade()
         {
             // TODO: Check balance enough to sell / buy

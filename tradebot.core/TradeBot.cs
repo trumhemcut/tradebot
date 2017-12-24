@@ -35,6 +35,7 @@ namespace tradebot.core
                 try
                 {
                     await UpdateCoinPrices();
+                    await UpdateBalances();
 
                     TradeInfo tradeInfo = null;
 
@@ -64,7 +65,7 @@ namespace tradebot.core
                     if (tradeInfo.DeltaBidBid >= this.ExpectedDelta)
                     {
                         Console.Write("Time to buy ...");
-                        if (IsAutoTrading)
+                        if (IsAutoTrading && tradeInfo.Tradable)
                         {
                             Console.WriteLine("AutoTrader is initializing...");
                             var autoTrader = new AutoTrader(
@@ -73,6 +74,9 @@ namespace tradebot.core
                                 tradeInfo: tradeInfo
                             );
                             await autoTrader.Trade();
+
+                            // Currently, we stop it to make sure everything works fine
+                            // TODO: Continuous trading here until balances are empty
                             return;
                         }
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...");
@@ -119,6 +123,11 @@ namespace tradebot.core
         public async Task UpdateCoinPrices()
         {
             await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
+        }
+
+        public async Task UpdateBalances()
+        {
+            await Task.WhenAll(this.BuyAccount.UpdateBalances(), this.SellAccount.UpdateBalances());
         }
     }
 }

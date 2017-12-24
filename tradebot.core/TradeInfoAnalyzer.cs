@@ -1,3 +1,5 @@
+using System;
+
 namespace tradebot.core
 {
     public class TradeInfoAnalyzer
@@ -14,6 +16,8 @@ namespace tradebot.core
         }
         public TradeInfo AnalyzeDeltaFinegrainedMode()
         {
+            var tradable = false;
+
             var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
                               this._buyAccount.TradeCoin.CoinPrice.AskPrice;
             var deltaBidBid = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
@@ -22,13 +26,21 @@ namespace tradebot.core
             // Decide Quantity to sell / buy
             // Sell & buy at the same quantity to be easily manage
             var coinQty = this._buyAccount.CurrentAskQty < this._sellAccount.CurrentBidQty ?
-                           this._buyAccount.CurrentAskQty: this._sellAccount.CurrentBidQty;
+                           this._buyAccount.CurrentAskQty : this._sellAccount.CurrentBidQty;
 
             coinQty = coinQty < this._sellAccount.TradeCoin.Balance ?
-                      coinQty: this._sellAccount.TradeCoin.Balance;
+                      coinQty : this._sellAccount.TradeCoin.Balance;
 
             var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty;
             var bitcoinQuantityAtBuy = coinQty * (1 - this._buyAccount.TradingFee / 100);
+
+            // Check coin balances
+            if ((bitcoinQuantityAtBuy > this._buyAccount.Bitcoin.Balance) ||
+            (this._sellAccount.TradeCoin.Balance < 0.01M / this._sellAccount.CurrentAskPrice))
+            {
+                tradable = false;
+                Console.WriteLine("Coin balances are not enough to trade.");
+            }
 
             return new TradeInfo
             {
@@ -39,7 +51,8 @@ namespace tradebot.core
                 BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
                 CoinQuantityAtBuy = coinQty,
                 CoinProfit = 0,
-                BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy
+                BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy,
+                Tradable = tradable
             };
         }
         public TradeInfo AnalyzeDeltaNormalMode()

@@ -50,6 +50,12 @@ namespace tradebot.core
                 };
             }
         }
+        public async Task UpdateBalances(){
+            using (var binanceClient = new BinanceClient())
+            {
+                var accountInfo = await binanceClient.GetAccountInfoAsync();
+            }
+        }
 
         public async Task<object> Buy(decimal amount, decimal price)
         {
