@@ -23,7 +23,7 @@ namespace tradebot.core
         {
             var plusPointToWin = 0.00000003M;
 #if DEBUG
-            plusPointToWin = -0.00000030M;
+            plusPointToWin = -0.00000230M;
 #endif
 
             try
