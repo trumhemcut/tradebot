@@ -7,7 +7,7 @@ COPY . ./
 WORKDIR /app/tradebot.console
 RUN dotnet restore
 
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Debug -o out
 
 # Use your own setting here
 COPY ./tradebot.console/appsettings.dev.json ./out/appsettings.dev.json
