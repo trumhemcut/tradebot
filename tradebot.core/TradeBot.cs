@@ -55,7 +55,7 @@ namespace tradebot.core
                     var content = $"{Coin} - {this.BuyAccount.GetType().Name}: {this.BuyAccount.TradeCoin.CoinPrice.AskPrice} * " +
                                   $"{this.SellAccount.GetType().Name}: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                   $"B-A: {tradeInfo.DeltaBidAsk} * " +
-                                  $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 4)} * " +
+                                  $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 6)} * " +
                                   $"Coin Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
                                   $"BTC Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy, 4)}";
                     Console.WriteLine(content);
