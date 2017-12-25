@@ -36,35 +36,41 @@ namespace tradebot.core
         {
             using (var client = new HttpClient())
             {
-                string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getticker?market=BTC-{this.TradeCoin.Token}");
+                // string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getticker?market=BTC-{this.TradeCoin.Token}");
+                string result = await client.GetStringAsync($"https://bittrex.com/api/v1.1/public/getorderbook?market=BTC-{this.TradeCoin.Token}&type=both&depth=3");
                 dynamic d = JsonConvert.DeserializeObject(result);
 
                 this.TradeCoin.CoinPrice = new CoinPrice
                 {
-                    LastPrice = d.result.Last,
-                    AskPrice = d.result.Ask,
-                    BidPrice = d.result.Bid,
+                    LastPrice = d.result.sell[0].Rate,
+                    AskPrice = d.result.sell[0].Rate,
+                    AskQuantity = d.result.sell[0].Quantity,
+                    BidPrice = d.result.buy[0].Rate,
+                    BidQuantity = d.result.buy[0].Quantity,
                     RetrivalTime = DateTime.Now
                 };
             }
         }
 
-        public async Task UpdateBalances(){
+        public async Task UpdateBalances()
+        {
             using (var bittrextClient = new BittrexClient())
             {
                 var coinBalanceResult = await bittrextClient.GetBalanceAsync(this.TradeCoin.Token);
-                this.Bitcoin.Balance = coinBalanceResult.Result.Balance;
-
+                this.TradeCoin.Balance = coinBalanceResult.Result == null ?
+                                         0 : coinBalanceResult.Result.Balance;
                 var bitcoinBalanceResult = await bittrextClient.GetBalanceAsync(this.Bitcoin.Token);
-                this.TradeCoin.Balance = bitcoinBalanceResult.Result.Balance;
+                this.Bitcoin.Balance = bitcoinBalanceResult.Result == null ?
+                                       0 : bitcoinBalanceResult.Result.Balance;
+                this.Bitcoin.Balance = 1M; // TODO: JUST FOR TEST
             }
         }
-        public async Task<object> Buy(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Buy(decimal quantity, decimal price)
         {
             using (var bittrexClient = new BittrexClient())
             {
-                // REMOVE THIS LINE WHEN PRODUCTION
-                quantity = 1M; // FOR TESTING
+                // TODO: REMOVE THIS LINE WHEN PRODUCTION
+                quantity = 0.01M / price; // FOR TESTING
 
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Buy,
@@ -72,25 +78,30 @@ namespace tradebot.core
                     quantity,
                     price);
 
-                return result;
-
+                return new TradeBotApiResult
+                {
+                    Success = result.Success
+                };
             }
         }
 
-        public async Task<object> Sell(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Sell(decimal quantity, decimal price)
         {
             using (var bittrexClient = new BittrexClient())
             {
-                // REMOVE THIS LINE WHEN PRODUCTION
-                quantity = 1M; // FOR TESTING
+                // TODO: REMOVE THIS LINE WHEN PRODUCTION
+                quantity = 0.01M / price; // FOR TESTING
 
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Sell,
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-                
-                return result;
+
+                return new TradeBotApiResult
+                {
+                    Success = result.Success
+                };
             }
         }
     }

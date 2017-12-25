@@ -54,34 +54,40 @@ namespace tradebot.core
 
                     var content = $"{Coin} - Bit: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                       $"Bin: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
-                                      $"B-B: {tradeInfo.DeltaBidBid} * " +
                                       $"B-A: {tradeInfo.DeltaBidAsk} * " +
-                                      $"Profit: {Math.Round(tradeInfo.CoinProfit)} * " +
-                                      $"Sell Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
-                                      $"Buy Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy)}";
+                                      $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 4)} * " +
+                                      $"Coin Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
+                                      $"BTC Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy, 4)}";
                     Console.WriteLine(content);
 
                     // Check to send notification
-                    if (tradeInfo.DeltaBidBid >= this.ExpectedDelta)
+                    if (tradeInfo.DeltaBidAsk >= this.ExpectedDelta)
                     {
-                        Console.Write("Time to buy ...");
-                        if (IsAutoTrading && tradeInfo.Tradable)
+                        if (IsAutoTrading)
                         {
-                            Console.WriteLine("AutoTrader is initializing...");
-                            var autoTrader = new AutoTrader(
-                                sellAccount: SellAccount,
-                                buyAccount: BuyAccount,
-                                tradeInfo: tradeInfo
-                            );
+                            Console.WriteLine("AutoTrader: ON");
+                            if (!tradeInfo.Tradable)
+                            {
+                                Console.WriteLine($"Not tradable: {tradeInfo.Message}");
+                            }
+                            else
+                            {
+                                var autoTrader = new AutoTrader(
+                                    sellAccount: SellAccount,
+                                    buyAccount: BuyAccount,
+                                    tradeInfo: tradeInfo
+                                );
 
-                            await autoTrader.Trade();
-                            await WaitUntilOrdersAreMatched(tradeInfo);
-                            
-                            // Currently, we stop it to make sure everything works fine
-                            // TODO: Continuous trading here until balances are empty
-                            return;
+                                await autoTrader.Trade();
+                                await WaitUntilOrdersAreMatched(tradeInfo);
+
+                                // Currently, we stop it to make sure everything works fine
+                                // TODO: Continuous trading here until balances are empty
+                                return;
+                            }
                         }
-                        Console.Write($"Send email in {_timeLeftToSendEmail}s...");
+                        Console.Write("Time to buy ...");
+                        Console.Write($"Send email in {_timeLeftToSendEmail}s...\n");
                         await SendMailIfTimePassed(tradeInfo, content);
                     }
 
@@ -92,8 +98,8 @@ namespace tradebot.core
                 catch (Exception ex)
                 {
                     Console.WriteLine("we saw an error. Please try again!");
-                    if (ex.InnerException != null)
-                        Console.WriteLine(ex.InnerException.Message);
+                    Console.WriteLine(ex.Message);
+
                     errorCount++;
                     if (errorCount > 100)
                     {

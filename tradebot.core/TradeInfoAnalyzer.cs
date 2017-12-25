@@ -16,7 +16,7 @@ namespace tradebot.core
         }
         public TradeInfo AnalyzeDeltaFinegrainedMode()
         {
-            var tradable = false;
+            var tradeInfo = new TradeInfo();
 
             var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
                               this._buyAccount.TradeCoin.CoinPrice.AskPrice;
@@ -31,29 +31,32 @@ namespace tradebot.core
             coinQty = coinQty < this._sellAccount.TradeCoin.Balance ?
                       coinQty : this._sellAccount.TradeCoin.Balance;
 
-            var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty;
-            var bitcoinQuantityAtBuy = coinQty * (1 - this._buyAccount.TradingFee / 100);
+            var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty * (1 - this._sellAccount.TradingFee / 100);
+            var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQty * (1 - this._buyAccount.TradingFee / 100);
 
-            // Check coin balances
-            if ((bitcoinQuantityAtBuy > this._buyAccount.Bitcoin.Balance) ||
-            (this._sellAccount.TradeCoin.Balance < 0.01M / this._sellAccount.CurrentAskPrice))
+            // Check coin balances at both side to make sure it's ok to order
+            if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
             {
-                tradable = false;
-                Console.WriteLine("Coin balances are not enough to trade.");
+                tradeInfo.Message = "Bitcoin is not enough to buy.";
+                tradeInfo.Tradable = false;
             }
 
-            return new TradeInfo
+            if (this._sellAccount.TradeCoin.Balance < 0.01M / this._sellAccount.CurrentAskPrice)
             {
-                DeltaBidAsk = deltaBidAsk,
-                DeltaBidBid = deltaBidBid,
-                BitcoinQuantityAtSell = bitcoinQuantityAtSell,
-                CoinQuantityAtSell = coinQty,
-                BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
-                CoinQuantityAtBuy = coinQty,
-                CoinProfit = 0,
-                BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy,
-                Tradable = tradable
-            };
+                tradeInfo.Message = $"{this._sellAccount.TradeCoin.Token} quantity is too low to set order.";
+                tradeInfo.Tradable = false;
+            }
+
+            tradeInfo.DeltaBidAsk = deltaBidAsk;
+            tradeInfo.DeltaBidBid = deltaBidBid;
+            tradeInfo.BitcoinQuantityAtSell = bitcoinQuantityAtSell;
+            tradeInfo.CoinQuantityAtSell = coinQty;
+            tradeInfo.BitcoinQuantityAtBuy = bitcoinQuantityAtBuy;
+            tradeInfo.CoinQuantityAtBuy = coinQty;
+            tradeInfo.CoinProfit = 0;
+            tradeInfo.BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
+
+            return tradeInfo;
         }
         public TradeInfo AnalyzeDeltaNormalMode()
         {

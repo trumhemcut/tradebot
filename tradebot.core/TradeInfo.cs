@@ -13,5 +13,7 @@ namespace tradebot.core
         public decimal SellPrice { get; set; }
         public decimal BuyPrice { get; set; }
         public bool Tradable { get; set; }
+        // In case we can't trade, what's the reason
+        public string Message { get; set; }
     }
 }

@@ -30,17 +30,18 @@ namespace tradebot.core
                 var buyPrice = BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin;
                 
                 Console.WriteLine($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
-                var buyResult = this.BuyAccount.Buy(
+                var buyResult = await this.BuyAccount.Buy(
                     TradeInfo.CoinQuantityAtBuy,
-                    BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin);
-                if (buyResult.IsCompleted) Console.WriteLine("BUY ORDER SET");
+                    buyPrice);
+                
+                if (buyResult.Success) Console.WriteLine("BUY ORDER SET");
                     
                 var sellPrice = SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin;
                 Console.WriteLine($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
                 await this.SellAccount.Sell(
                     TradeInfo.CoinQuantityAtSell,
                     sellPrice);
-                if (buyResult.IsCompleted) Console.WriteLine("SELL ORDER SET");
+                if (buyResult.Success) Console.WriteLine("SELL ORDER SET");
             }
             catch (Exception ex)
             {

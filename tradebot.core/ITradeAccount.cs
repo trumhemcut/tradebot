@@ -15,7 +15,7 @@ namespace tradebot.core
         Coin TradeCoin { get; set; }
         Task UpdatePrices();
         Task UpdateBalances();
-        Task<object> Buy(decimal quantity, decimal price);
-        Task<object> Sell(decimal quantity, decimal price);
+        Task<TradeBotApiResult> Buy(decimal quantity, decimal price);
+        Task<TradeBotApiResult> Sell(decimal quantity, decimal price);
     }
 }
