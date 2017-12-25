@@ -21,27 +21,38 @@ namespace tradebot.core
 
         public async Task Trade()
         {
-            // TODO: REMOVE this line on production
-            // Why 13? Well, I like this number :)
-            var plusPointToWin = -0.00000013M;
+            var plusPointToWin = -0.00000003M;
+#if DEBUG
+            plusPointToWin = -0.00000015M;
+#endif
 
             try
             {
-                var buyPrice = BuyAccount.TradeCoin.CoinPrice.AskPrice + plusPointToWin;
-                
-                Console.WriteLine($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
+                var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
+
+                Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
                 var buyResult = await this.BuyAccount.Buy(
                     TradeInfo.CoinQuantityAtBuy,
                     buyPrice);
+
+                if (buyResult.Success)
+                    Console.Write("...OK!");
+                else
+                    Console.WriteLine(buyResult.ErrorMessage);
                 
-                if (buyResult.Success) Console.WriteLine("BUY ORDER SET");
-                    
-                var sellPrice = SellAccount.TradeCoin.CoinPrice.BidPrice - plusPointToWin;
-                Console.WriteLine($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
-                await this.SellAccount.Sell(
+                Console.WriteLine("");
+                Console.WriteLine("");
+
+                var sellPrice = TradeInfo.SellPrice - plusPointToWin;
+                Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
+                var sellResult = await this.SellAccount.Sell(
                     TradeInfo.CoinQuantityAtSell,
                     sellPrice);
-                if (buyResult.Success) Console.WriteLine("SELL ORDER SET");
+                if (sellResult.Success)
+                    Console.Write("...OK!");
+                else
+                    Console.WriteLine(sellResult.ErrorMessage);
+                Console.WriteLine("");
             }
             catch (Exception ex)
             {

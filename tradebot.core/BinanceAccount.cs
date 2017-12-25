@@ -68,27 +68,30 @@ namespace tradebot.core
             }
         }
 
-        public async Task<TradeBotApiResult> Buy(decimal amount, decimal price)
+        public async Task<TradeBotApiResult> Buy(decimal quantity, decimal price)
         {
             using (var binanceClient = new BinanceClient())
             {
-                // TODO: REMOVE THIS LINE WHEN PRODUCTION
+#if DEBUG
                 // MIN OF ORDER IS 0.01 BTC
                 // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
-                amount = 0.01M / price; // FOR TESTING
+
+                quantity = 100; //0.01M / price; // FOR TESTING
+#endif
 
                 var result = await binanceClient.PlaceOrderAsync(
                         $"{this.TradeCoin.Token}BTC",
                         OrderSide.Buy,
                         OrderType.Limit,
                         TimeInForce.GoodTillCancel,
-                        amount,
+                        quantity,
                         price
                 );
 
                 return new TradeBotApiResult
                 {
-                    Success = result.Success
+                    Success = result.Success,
+                    ErrorMessage = result.Error == null ? string.Empty : result.Error.Message
                 };
             }
         }
@@ -97,11 +100,11 @@ namespace tradebot.core
         {
             using (var binanceClient = new BinanceClient())
             {
-                // TODO: REMOVE THIS LINE WHEN PRODUCTION
+#if DEBUG
                 // MIN OF ORDER IS 0.01 BTC
                 // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
-                quantity = 0.01M / price; // FOR TESTING
-
+                quantity = 100; //0.01M / price; // FOR TESTING
+#endif
                 var result = await binanceClient.PlaceOrderAsync(
                         $"{this.TradeCoin.Token}BTC",
                         OrderSide.Sell,
@@ -113,7 +116,8 @@ namespace tradebot.core
 
                 return new TradeBotApiResult
                 {
-                    Success = result.Success
+                    Success = result.Success,
+                    ErrorMessage = result.Error == null ? string.Empty : result.Error.Message
                 };
             }
         }

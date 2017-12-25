@@ -17,6 +17,8 @@ namespace tradebot.core
         public TradeInfo AnalyzeDeltaFinegrainedMode()
         {
             var tradeInfo = new TradeInfo();
+            tradeInfo.Message = "OK to buy";
+            tradeInfo.Tradable = true;
 
             var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
                               this._buyAccount.TradeCoin.CoinPrice.AskPrice;
@@ -34,6 +36,9 @@ namespace tradebot.core
             var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty * (1 - this._sellAccount.TradingFee / 100);
             var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQty * (1 - this._buyAccount.TradingFee / 100);
 
+#if DEBUG
+            this._buyAccount.Bitcoin.Balance = 1;
+#endif
             // Check coin balances at both side to make sure it's ok to order
             if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
             {
@@ -55,6 +60,8 @@ namespace tradebot.core
             tradeInfo.CoinQuantityAtBuy = coinQty;
             tradeInfo.CoinProfit = 0;
             tradeInfo.BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
+            tradeInfo.SellPrice = _sellAccount.CurrentBidPrice;
+            tradeInfo.BuyPrice = _buyAccount.CurrentAskPrice;
 
             return tradeInfo;
         }

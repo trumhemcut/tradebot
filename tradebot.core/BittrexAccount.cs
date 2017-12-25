@@ -69,8 +69,9 @@ namespace tradebot.core
         {
             using (var bittrexClient = new BittrexClient())
             {
-                // TODO: REMOVE THIS LINE WHEN PRODUCTION
-                quantity = 0.01M / price; // FOR TESTING
+#if DEBUG
+                quantity = 100; //0.01M / price; // FOR TESTING
+#endif
 
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Buy,
@@ -80,7 +81,8 @@ namespace tradebot.core
 
                 return new TradeBotApiResult
                 {
-                    Success = result.Success
+                    Success = result.Success,
+                    ErrorMessage = result.Error == null ? string.Empty : result.Error.ErrorMessage
                 };
             }
         }
@@ -89,8 +91,9 @@ namespace tradebot.core
         {
             using (var bittrexClient = new BittrexClient())
             {
-                // TODO: REMOVE THIS LINE WHEN PRODUCTION
-                quantity = 0.01M / price; // FOR TESTING
+#if DEBUG
+                quantity = 100; // FOR TESTING
+#endif
 
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Sell,
@@ -100,7 +103,8 @@ namespace tradebot.core
 
                 return new TradeBotApiResult
                 {
-                    Success = result.Success
+                    Success = result.Success,
+                    ErrorMessage = result.Error == null ? string.Empty : result.Error.ErrorMessage
                 };
             }
         }

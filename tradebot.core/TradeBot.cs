@@ -120,26 +120,29 @@ namespace tradebot.core
             var sellWasMatched = false;
             var buyWasMatched = false;
 
+            Console.WriteLine("MATCH CHECKING ");
+
             while (true)
             {
                 await UpdateCoinPrices();
 
-                if (this.SellAccount.TradeCoin.CoinPrice.AskPrice > tradeInfo.SellPrice)
+                if (this.SellAccount.TradeCoin.CoinPrice.BidPrice > tradeInfo.SellPrice && !sellWasMatched)
                 {
                     Console.WriteLine("Sell order was matched.");
                     sellWasMatched = true;
                 }
 
-                if (this.BuyAccount.TradeCoin.CoinPrice.AskPrice > tradeInfo.SellPrice)
+                if (this.BuyAccount.TradeCoin.CoinPrice.AskQuantity < tradeInfo.SellPrice && !buyWasMatched)
                 {
-                    Console.WriteLine("Sell order was matched.");
-                    sellWasMatched = true;
+                    Console.WriteLine("Buy order was matched.");
+                    buyWasMatched = true;
                 }
                 if (sellWasMatched && buyWasMatched)
                 {
                     Console.WriteLine("SUCCESSFUL! Sell & buy were matched.");
                     break;
                 }
+                Console.Write(".");
 
                 Thread.Sleep(500);
             }
