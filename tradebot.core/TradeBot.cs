@@ -69,6 +69,11 @@ namespace tradebot.core
                             if (!tradeInfo.Tradable)
                             {
                                 Console.WriteLine($"Not tradable: {tradeInfo.Message}");
+                                await EmailHelper.SendEmail(
+                                    $"Not tradable: {tradeInfo.Message}",
+                                    this.EmailTo,
+                                    $"Not tradable: {tradeInfo.Message}",
+                                    this.MailApiKey);
                             }
                             else
                             {
@@ -81,9 +86,11 @@ namespace tradebot.core
                                 await autoTrader.Trade();
                                 await WaitUntilOrdersAreMatched(tradeInfo);
 
-                                // Currently, we stop it to make sure everything works fine
-                                // TODO: Continuous trading here until balances are empty
-                                return;
+                                await EmailHelper.SendEmail(
+                                    $"Trade successfully, please check!!!",
+                                    this.EmailTo,
+                                    "Trade successfully :)",
+                                    this.MailApiKey);
                             }
                         }
                         Console.Write("Time to buy ...");
@@ -103,6 +110,8 @@ namespace tradebot.core
                 {
                     Console.WriteLine("we saw an error. Please try again!");
                     Console.WriteLine(ex.Message);
+                    if (ex.InnerException != null)
+                        Console.WriteLine(ex.InnerException.Message);
 
                     errorCount++;
                     if (errorCount > 100)
