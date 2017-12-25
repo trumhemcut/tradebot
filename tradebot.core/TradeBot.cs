@@ -82,8 +82,23 @@ namespace tradebot.core
                                     buyAccount: BuyAccount,
                                     tradeInfo: tradeInfo
                                 );
+                                try
+                                {
+                                    await autoTrader.Trade();
+                                }
+                                catch (Exception ex)
+                                {
+                                    var message = ex.Message;
+                                    if (ex.InnerException != null)
+                                        message = message + "\n" + ex.InnerException.Message;
 
-                                await autoTrader.Trade();
+                                    await EmailHelper.SendEmail(
+                                        $"Trade Error! Please check!!!",
+                                        this.EmailTo,
+                                        message,
+                                        this.MailApiKey);
+                                }
+
                                 await WaitUntilOrdersAreMatched(tradeInfo);
 
                                 await EmailHelper.SendEmail(
@@ -139,12 +154,14 @@ namespace tradebot.core
             {
                 if (await this.SellAccount.IsOrderMatched() && !sellWasMatched)
                 {
+                    Console.WriteLine("");
                     Console.WriteLine("Sell order was matched.");
                     sellWasMatched = true;
                 }
 
                 if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
                 {
+                    Console.WriteLine("");
                     Console.WriteLine("Buy order was matched.");
                     buyWasMatched = true;
                 }

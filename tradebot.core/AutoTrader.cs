@@ -26,36 +26,30 @@ namespace tradebot.core
             plusPointToWin = -0.00000230M;
 #endif
 
-            try
-            {
-                var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
-                var sellPrice = TradeInfo.SellPrice - plusPointToWin;
+            var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
+            var sellPrice = TradeInfo.SellPrice - plusPointToWin;
 
-                var buyTask = this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
-                var sellTask = this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+            var buyTask = this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+            var sellTask = this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
 
-                await Task.WhenAll(buyTask, sellTask);
+            await Task.WhenAll(buyTask, sellTask);
 
-                Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
-                if (buyTask.Result.Success)
-                    Console.Write("...OK!");
-                else
-                    Console.WriteLine(buyTask.Result.ErrorMessage);
+            Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
+            if (buyTask.Result.Success)
+                Console.Write("...OK!");
+            else
+                Console.WriteLine(buyTask.Result.ErrorMessage);
 
-                Console.WriteLine("");
-                Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine("");
 
-                Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
-                if (sellTask.Result.Success)
-                    Console.Write("...OK!");
-                else
-                    Console.WriteLine(sellTask.Result.ErrorMessage);
-                Console.WriteLine("");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Set order error: {ex.Message}");
-            }
+            Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
+            if (sellTask.Result.Success)
+                Console.Write("...OK!");
+            else
+                Console.WriteLine(sellTask.Result.ErrorMessage);
+            Console.WriteLine("");
+
         }
 
         public void PrintDashboard()
