@@ -124,15 +124,13 @@ namespace tradebot.core
 
             while (true)
             {
-                await UpdateCoinPrices();
-
-                if (this.SellAccount.TradeCoin.CoinPrice.BidPrice > tradeInfo.SellPrice && !sellWasMatched)
+                if(await this.SellAccount.IsOrderMatched() && !sellWasMatched)
                 {
                     Console.WriteLine("Sell order was matched.");
                     sellWasMatched = true;
                 }
 
-                if (this.BuyAccount.TradeCoin.CoinPrice.AskQuantity < tradeInfo.SellPrice && !buyWasMatched)
+                if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
                 {
                     Console.WriteLine("Buy order was matched.");
                     buyWasMatched = true;

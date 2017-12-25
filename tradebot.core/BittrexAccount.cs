@@ -11,6 +11,7 @@ namespace tradebot.core
 {
     public class BittrexAccount : ITradeAccount
     {
+        private Guid _currentOrderId;
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
         public decimal TradingFee { get; set; }
@@ -78,7 +79,7 @@ namespace tradebot.core
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-
+                this._currentOrderId = result.Result.Uuid;
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
@@ -100,12 +101,21 @@ namespace tradebot.core
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-
+                this._currentOrderId = result.Result.Uuid;
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
                     ErrorMessage = result.Error == null ? string.Empty : result.Error.ErrorMessage
                 };
+            }
+        }
+
+        public async Task<bool> IsOrderMatched()
+        {
+            using (var bittrexClient = new BittrexClient())
+            {
+                var result = await bittrexClient.GetOrderAsync(this._currentOrderId);
+                return result.Result.Closed != null;
             }
         }
     }

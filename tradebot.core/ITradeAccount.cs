@@ -9,7 +9,7 @@ namespace tradebot.core
         decimal CurrentBidPrice { get; }
         decimal CurrentBidQty { get; }
         decimal CurrentAskQty { get; }
-        
+
         decimal TradingFee { get; set; }
         Coin Bitcoin { get; set; }
         Coin TradeCoin { get; set; }
@@ -17,5 +17,6 @@ namespace tradebot.core
         Task UpdateBalances();
         Task<TradeBotApiResult> Buy(decimal quantity, decimal price);
         Task<TradeBotApiResult> Sell(decimal quantity, decimal price);
+        Task<bool> IsOrderMatched();
     }
 }

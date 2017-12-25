@@ -21,9 +21,9 @@ namespace tradebot.core
 
         public async Task Trade()
         {
-            var plusPointToWin = -0.00000003M;
+            var plusPointToWin = 0.00000003M;
 #if DEBUG
-            plusPointToWin = -0.00000015M;
+            plusPointToWin = 0.00000003M; //-0.00000015M;
 #endif
 
             try

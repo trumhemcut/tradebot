@@ -10,6 +10,7 @@ namespace tradebot.core
 {
     public class BinanceAccount : ITradeAccount
     {
+        private long _currentOrderId;
         public decimal TradingFee { get; set; }
         public Coin Bitcoin { get; set; }
         public Coin TradeCoin { get; set; }
@@ -87,7 +88,7 @@ namespace tradebot.core
                         quantity,
                         price
                 );
-
+                this._currentOrderId = result.Data.OrderId;
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
@@ -114,11 +115,22 @@ namespace tradebot.core
                         price
                 );
 
+                this._currentOrderId = result.Data.OrderId;
+
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
                     ErrorMessage = result.Error == null ? string.Empty : result.Error.Message
                 };
+            }
+        }
+
+        public async Task<bool> IsOrderMatched()
+        {
+            using (var binanceClient = new BinanceClient())
+            {
+                var result = await binanceClient.QueryOrderAsync($"{this.TradeCoin.Token}BTC", this._currentOrderId);
+                return result.Data.Status == OrderStatus.Filled;
             }
         }
     }
