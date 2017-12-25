@@ -52,12 +52,12 @@ namespace tradebot.core
                             break;
                     }
 
-                    var content = $"{Coin} - Bit: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
-                                      $"Bin: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
-                                      $"B-A: {tradeInfo.DeltaBidAsk} * " +
-                                      $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 4)} * " +
-                                      $"Coin Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
-                                      $"BTC Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy, 4)}";
+                    var content = $"{Coin} - {this.BuyAccount.GetType().Name}: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                                  $"{this.SellAccount.GetType().Name}: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                                  $"B-A: {tradeInfo.DeltaBidAsk} * " +
+                                  $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 4)} * " +
+                                  $"Coin Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
+                                  $"BTC Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy, 4)}";
                     Console.WriteLine(content);
 
                     // Check to send notification
@@ -89,6 +89,10 @@ namespace tradebot.core
                         Console.Write("Time to buy ...");
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...\n");
                         await SendMailIfTimePassed(tradeInfo, content);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Expected Delta: {ExpectedDelta}");
                     }
 
                     errorCount = 0;
@@ -124,7 +128,7 @@ namespace tradebot.core
 
             while (true)
             {
-                if(await this.SellAccount.IsOrderMatched() && !sellWasMatched)
+                if (await this.SellAccount.IsOrderMatched() && !sellWasMatched)
                 {
                     Console.WriteLine("Sell order was matched.");
                     sellWasMatched = true;

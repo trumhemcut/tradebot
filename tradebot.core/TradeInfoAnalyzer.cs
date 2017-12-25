@@ -36,9 +36,6 @@ namespace tradebot.core
             var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty * (1 - this._sellAccount.TradingFee / 100);
             var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQty * (1 - this._buyAccount.TradingFee / 100);
 
-#if DEBUG
-            this._buyAccount.Bitcoin.Balance = 1;
-#endif
             // Check coin balances at both side to make sure it's ok to order
             if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
             {

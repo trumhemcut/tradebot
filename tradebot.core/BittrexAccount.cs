@@ -71,7 +71,7 @@ namespace tradebot.core
             using (var bittrexClient = new BittrexClient())
             {
 #if DEBUG
-                quantity = 100; //0.01M / price; // FOR TESTING
+                quantity = 50; //0.01M / price; // FOR TESTING
 #endif
 
                 var result = await bittrexClient.PlaceOrderAsync(
@@ -93,7 +93,7 @@ namespace tradebot.core
             using (var bittrexClient = new BittrexClient())
             {
 #if DEBUG
-                quantity = 100; // FOR TESTING
+                quantity = 50; // FOR TESTING
 #endif
 
                 var result = await bittrexClient.PlaceOrderAsync(

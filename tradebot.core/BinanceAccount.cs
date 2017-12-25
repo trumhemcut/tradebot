@@ -77,7 +77,7 @@ namespace tradebot.core
                 // MIN OF ORDER IS 0.01 BTC
                 // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
 
-                quantity = 100; //0.01M / price; // FOR TESTING
+                quantity = 50; //0.01M / price; // FOR TESTING
 #endif
 
                 var result = await binanceClient.PlaceOrderAsync(
@@ -104,7 +104,7 @@ namespace tradebot.core
 #if DEBUG
                 // MIN OF ORDER IS 0.01 BTC
                 // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
-                quantity = 100; //0.01M / price; // FOR TESTING
+                quantity = 50; //0.01M / price; // FOR TESTING
 #endif
                 var result = await binanceClient.PlaceOrderAsync(
                         $"{this.TradeCoin.Token}BTC",
