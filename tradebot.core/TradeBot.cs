@@ -35,7 +35,8 @@ namespace tradebot.core
                 try
                 {
                     await UpdateCoinPrices();
-                    await UpdateBalances();
+                    if (!await UpdateBalances())
+                        continue;
 
                     TradeInfo tradeInfo = null;
 
@@ -192,7 +193,26 @@ namespace tradebot.core
         public async Task UpdateCoinPrices() =>
             await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
 
-        public async Task UpdateBalances() =>
-            await Task.WhenAll(this.BuyAccount.UpdateBalances(), this.SellAccount.UpdateBalances());
+        public async Task<bool> UpdateBalances()
+        {
+            var updateSellBalances = this.SellAccount.UpdateBalances();
+            var updateBuyBalances = this.BuyAccount.UpdateBalances();
+
+            await Task.WhenAll(updateBuyBalances, updateSellBalances);
+
+            if (!updateBuyBalances.Result.Success)
+            {
+                Console.WriteLine($"Update buy balance error: {updateBuyBalances.Result.ErrorMessage}");
+                return false;
+            }
+
+            if (!updateSellBalances.Result.Success)
+            {
+                Console.WriteLine($"Update buy balance error: {updateSellBalances.Result.ErrorMessage}");
+                return false;
+            }
+
+            return true;
+        }
     }
 }

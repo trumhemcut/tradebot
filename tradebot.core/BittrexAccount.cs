@@ -53,17 +53,21 @@ namespace tradebot.core
             }
         }
 
-        public async Task UpdateBalances()
+        public async Task<TradeBotApiResult> UpdateBalances()
         {
             using (var bittrextClient = new BittrexClient())
             {
                 var coinBalanceResult = await bittrextClient.GetBalanceAsync(this.TradeCoin.Token);
-                this.TradeCoin.Balance = coinBalanceResult.Result == null ?
-                                         0 : coinBalanceResult.Result.Balance;
-                var bitcoinBalanceResult = await bittrextClient.GetBalanceAsync(this.Bitcoin.Token);
-                this.Bitcoin.Balance = bitcoinBalanceResult.Result == null ?
-                                       0 : bitcoinBalanceResult.Result.Balance;
-                this.Bitcoin.Balance = 1M; // TODO: JUST FOR TEST
+                if (coinBalanceResult.Success)
+                {
+                    this.TradeCoin.Balance = coinBalanceResult.Result == null ?
+                                             0 : coinBalanceResult.Result.Balance;
+                    var bitcoinBalanceResult = await bittrextClient.GetBalanceAsync(this.Bitcoin.Token);
+                    this.Bitcoin.Balance = bitcoinBalanceResult.Result == null ?
+                                           0 : bitcoinBalanceResult.Result.Balance;
+                    return new TradeBotApiResult { Success = true };
+                }
+                return new TradeBotApiResult { Success = false, ErrorMessage = coinBalanceResult.Error.ErrorMessage };
             }
         }
         public async Task<TradeBotApiResult> Buy(decimal quantity, decimal price)
@@ -79,7 +83,9 @@ namespace tradebot.core
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-                this._currentOrderId = result.Result.Uuid;
+                
+                if (result.Success)
+                    this._currentOrderId = result.Result.Uuid;
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
@@ -101,7 +107,9 @@ namespace tradebot.core
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-                this._currentOrderId = result.Result.Uuid;
+
+                if (result.Success)
+                    this._currentOrderId = result.Result.Uuid;
                 return new TradeBotApiResult
                 {
                     Success = result.Success,

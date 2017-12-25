@@ -24,30 +24,54 @@ namespace tradebot.core
             var plusPointToWin = 0.00000003M;
 #if DEBUG
             plusPointToWin = -0.00000230M;
+            // plusPointToWin = 0.00000003M;
 #endif
 
             var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
             var sellPrice = TradeInfo.SellPrice - plusPointToWin;
 
-            var buyTask = this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
-            var sellTask = this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+            TradeBotApiResult buyResult = null, sellResult = null;
 
-            await Task.WhenAll(buyTask, sellTask);
+            // Since we experienced many times that Binance throws issues usually.
+            // We will stop this if Binance is not successful
+            
+            // TODO: Fixed mode, will buy 200 at atime.
+            TradeInfo.CoinQuantityAtBuy = TradeInfo.CoinQuantityAtSell = 200;
+            if (this.BuyAccount is BinanceAccount)
+            {
+                buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                if (!buyResult.Success)
+                {
+                    Console.WriteLine($"Buy Order ERROR! {buyResult.ErrorMessage}, Sell Order was ignored");
+                    return;
+                }
+                sellResult = await this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+            }
+            else
+            {
+                sellResult = await this.SellAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                if (!sellResult.Success)
+                {
+                    Console.WriteLine($"Sell Order ERROR! {buyResult.ErrorMessage}, Buy Order was ignored");
+                    return;
+                }
+                buyResult = await this.BuyAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+            }
 
             Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
-            if (buyTask.Result.Success)
+            if (buyResult.Success)
                 Console.Write("...OK!");
             else
-                Console.WriteLine(buyTask.Result.ErrorMessage);
+                Console.WriteLine(buyResult.ErrorMessage);
 
             Console.WriteLine("");
             Console.WriteLine("");
 
             Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
-            if (sellTask.Result.Success)
+            if (sellResult.Success)
                 Console.Write("...OK!");
             else
-                Console.WriteLine(sellTask.Result.ErrorMessage);
+                Console.WriteLine(sellResult.ErrorMessage);
             Console.WriteLine("");
 
         }

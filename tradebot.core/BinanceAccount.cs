@@ -52,20 +52,25 @@ namespace tradebot.core
                 };
             }
         }
-        public async Task UpdateBalances()
+        public async Task<TradeBotApiResult> UpdateBalances()
         {
             using (var binanceClient = new BinanceClient())
             {
                 var accountInfo = await binanceClient.GetAccountInfoAsync();
-                this.Bitcoin.Balance = accountInfo.Data.Balances
-                    .Where(balance => balance.Asset.Equals(this.Bitcoin.Token))
-                    .Single()
-                    .Total;
+                if (accountInfo.Success)
+                {
+                    this.Bitcoin.Balance = accountInfo.Data.Balances
+                        .Where(balance => balance.Asset.Equals(this.Bitcoin.Token))
+                        .Single()
+                        .Total;
 
-                this.TradeCoin.Balance = accountInfo.Data.Balances
-                    .Where(balance => balance.Asset.Equals(this.TradeCoin.Token))
-                    .Single()
-                    .Total;
+                    this.TradeCoin.Balance = accountInfo.Data.Balances
+                        .Where(balance => balance.Asset.Equals(this.TradeCoin.Token))
+                        .Single()
+                        .Total;
+                    return new TradeBotApiResult { Success = true };
+                }
+                return new TradeBotApiResult { Success = false, ErrorMessage = accountInfo.Error.Message };
             }
         }
 
@@ -88,7 +93,10 @@ namespace tradebot.core
                         quantity,
                         price
                 );
-                this._currentOrderId = result.Data.OrderId;
+
+                if (result.Success)
+                    this._currentOrderId = result.Data.OrderId;
+
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
@@ -115,7 +123,8 @@ namespace tradebot.core
                         price
                 );
 
-                this._currentOrderId = result.Data.OrderId;
+                if (result.Success)
+                    this._currentOrderId = result.Data.OrderId;
 
                 return new TradeBotApiResult
                 {
