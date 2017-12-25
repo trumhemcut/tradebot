@@ -23,8 +23,8 @@ namespace tradebot.core
         {
             var plusPointToWin = 0.00000003M;
 #if DEBUG
-            plusPointToWin = -0.00000230M;
-            // plusPointToWin = 0.00000003M;
+            // plusPointToWin = -0.00000230M;
+            plusPointToWin = 0.00000003M;
 #endif
 
             var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
@@ -35,8 +35,6 @@ namespace tradebot.core
             // Since we experienced many times that Binance throws issues usually.
             // We will stop this if Binance is not successful
             
-            // TODO: Fixed mode, will buy 200 at atime.
-            TradeInfo.CoinQuantityAtBuy = TradeInfo.CoinQuantityAtSell = 200;
             if (this.BuyAccount is BinanceAccount)
             {
                 buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);

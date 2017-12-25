@@ -40,6 +40,10 @@ namespace tradebot.core
 
                     TradeInfo tradeInfo = null;
 
+                    // FIX MODE: Buy 200 each a time
+                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 
+                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 200M;
+
                     switch (this.TradeMode)
                     {
                         case TradeMode.FinegrainedTrade:
@@ -108,6 +112,10 @@ namespace tradebot.core
                                     "Trade successfully :)",
                                     this.MailApiKey);
                             }
+
+                            //TODO: Temporarily run only once
+                            Console.WriteLine("Exit after trading successfully");
+                            return;
                         }
                         Console.Write("Time to buy ...");
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...\n");
