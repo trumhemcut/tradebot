@@ -52,7 +52,7 @@ namespace tradebot.core
                             break;
                     }
 
-                    var content = $"{Coin} - {this.BuyAccount.GetType().Name}: {this.BuyAccount.TradeCoin.CoinPrice.BidPrice} * " +
+                    var content = $"{Coin} - {this.BuyAccount.GetType().Name}: {this.BuyAccount.TradeCoin.CoinPrice.AskPrice} * " +
                                   $"{this.SellAccount.GetType().Name}: {this.SellAccount.TradeCoin.CoinPrice.BidPrice} * " +
                                   $"B-A: {tradeInfo.DeltaBidAsk} * " +
                                   $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 4)} * " +
