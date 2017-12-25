@@ -29,29 +29,27 @@ namespace tradebot.core
             try
             {
                 var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
+                var sellPrice = TradeInfo.SellPrice - plusPointToWin;
+
+                var buyTask = this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                var sellTask = this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+
+                await Task.WhenAll(buyTask, sellTask);
 
                 Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
-                var buyResult = await this.BuyAccount.Buy(
-                    TradeInfo.CoinQuantityAtBuy,
-                    buyPrice);
-
-                if (buyResult.Success)
+                if (buyTask.Result.Success)
                     Console.Write("...OK!");
                 else
-                    Console.WriteLine(buyResult.ErrorMessage);
-                
+                    Console.WriteLine(buyTask.Result.ErrorMessage);
+
                 Console.WriteLine("");
                 Console.WriteLine("");
 
-                var sellPrice = TradeInfo.SellPrice - plusPointToWin;
                 Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
-                var sellResult = await this.SellAccount.Sell(
-                    TradeInfo.CoinQuantityAtSell,
-                    sellPrice);
-                if (sellResult.Success)
+                if (sellTask.Result.Success)
                     Console.Write("...OK!");
                 else
-                    Console.WriteLine(sellResult.ErrorMessage);
+                    Console.WriteLine(sellTask.Result.ErrorMessage);
                 Console.WriteLine("");
             }
             catch (Exception ex)
