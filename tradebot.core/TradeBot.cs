@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -21,11 +22,17 @@ namespace tradebot.core
         public string Coin { get { return this._options.Coin; } }
         public TradeMode TradeMode { get { return this._options.TradeMode; } }
         private readonly TradeBotOptions _options;
+        private readonly ILogger _logger;
+
         public TradeBot() { }
-        public TradeBot(TradeBotOptions options)
+        
+        public TradeBot(TradeBotOptions options, ILogger logger)
         {
             this._timeLeftToSendEmail = 0;
             this._options = options;
+            this._logger = logger;
+
+            this._logger.LogInformation("Bot is created successfully");
         }
         public async Task Execute()
         {

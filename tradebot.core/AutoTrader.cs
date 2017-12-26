@@ -23,8 +23,8 @@ namespace tradebot.core
         {
             var plusPointToWin = 0.00000003M;
 #if DEBUG
-            // plusPointToWin = -0.00000230M;
-            plusPointToWin = 0.00000003M;
+            plusPointToWin = -0.00000230M;
+            // plusPointToWin = 0.00000003M;
 #endif
 
             var buyPrice = TradeInfo.BuyPrice + plusPointToWin;

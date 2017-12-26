@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 namespace tradebot.core
 {
     public class TradeBotBuilder : ITradeBotBuilder
@@ -8,6 +11,8 @@ namespace tradebot.core
         private IConfiguration _configuration;
         private IConfigurationBuilder _configurationBuilder;
         private TradeBotOptions _options;
+        private ServiceCollection _serviceCollection = new ServiceCollection();
+        private Action<ServiceCollection> _configureServicesDelegate;
 
         public TradeBotBuilder()
         {
@@ -15,16 +20,29 @@ namespace tradebot.core
 
         public ITradeBot Build()
         {
+            this._configureServicesDelegate(this._serviceCollection);
+            var serviceProvider = this._serviceCollection.BuildServiceProvider();
+
             this._options = new TradeBotOptions(this._configuration);
+
+            // Configure logging
+            var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bot");
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
             this._options.BuyAccount = tradeFlowAnalyzer.BuyAccount;
             this._options.SellAccount = tradeFlowAnalyzer.SellAccount;
 
-            var tradeBot = new TradeBot(_options);
+            var tradeBot = new TradeBot(_options, logger);
+
             return tradeBot;
         }
 
+        public ITradeBotBuilder ConfigureServices(Action<IServiceCollection> serviceCollectionDelegate)
+        {
+            this._configureServicesDelegate = serviceCollectionDelegate;
+
+            return this;
+        }
         public ITradeBotBuilder Configure(Action<IConfigurationBuilder> configureDelegate)
         {
             this._configurationBuilder = new ConfigurationBuilder()

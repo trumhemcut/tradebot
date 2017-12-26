@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace tradebot.core
 {
@@ -24,13 +25,15 @@ namespace tradebot.core
             return tradeBotBuilder;
         }
 
-        public static ITradeBotBuilder WithSellAccount(this ITradeBotBuilder tradeBotBuilder, ITradeAccount sellAccount){
+        public static ITradeBotBuilder WithSellAccount(this ITradeBotBuilder tradeBotBuilder, ITradeAccount sellAccount)
+        {
             tradeBotBuilder.SetSellAccount(sellAccount);
 
             return tradeBotBuilder;
         }
 
-        public static ITradeBotBuilder WithBuyAccount(this ITradeBotBuilder tradeBotBuilder, ITradeAccount buyAccount){
+        public static ITradeBotBuilder WithBuyAccount(this ITradeBotBuilder tradeBotBuilder, ITradeAccount buyAccount)
+        {
             tradeBotBuilder.SetBuyAccount(buyAccount);
 
             return tradeBotBuilder;
