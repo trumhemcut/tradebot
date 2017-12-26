@@ -41,8 +41,8 @@ namespace tradebot.core
                     TradeInfo tradeInfo = null;
 
                     // FIX MODE: Buy 200 each a time
-                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 
-                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 200M;
+                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 300.3M;
+                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 300M;
 
                     switch (this.TradeMode)
                     {
@@ -114,8 +114,8 @@ namespace tradebot.core
                             }
 
                             //TODO: Temporarily run only once
-                            Console.WriteLine("Exit after trading successfully");
-                            return;
+                            //Console.WriteLine("Exit after trading successfully");
+                            //return;
                         }
                         Console.Write("Time to buy ...");
                         Console.Write($"Send email in {_timeLeftToSendEmail}s...\n");
