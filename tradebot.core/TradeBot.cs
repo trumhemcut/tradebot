@@ -47,9 +47,9 @@ namespace tradebot.core
 
                     TradeInfo tradeInfo = null;
 
-                    // FIX MODE: Buy 200 each a time
-                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 300.3M;
-                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 300M;
+                    // FIX MODE: Buy 400 each a time
+                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 400.4M;
+                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 400M;
 
                     switch (this.TradeMode)
                     {
