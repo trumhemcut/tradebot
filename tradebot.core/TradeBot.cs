@@ -82,14 +82,21 @@ namespace tradebot.core
                             }
                             else
                             {
-                                var autoTrader = new AutoTrader(
-                                    sellAccount: SellAccount,
-                                    buyAccount: BuyAccount,
-                                    tradeInfo: tradeInfo
-                                );
                                 try
                                 {
+                                    var autoTrader = new AutoTrader(
+                                        sellAccount: SellAccount,
+                                        buyAccount: BuyAccount,
+                                        tradeInfo: tradeInfo
+                                    );
                                     await autoTrader.Trade();
+                                    await WaitUntilOrdersAreMatched(tradeInfo);
+
+                                    await EmailHelper.SendEmail(
+                                        $"Trade successfully, please check!!!",
+                                        this.EmailTo,
+                                        "Trade successfully :)",
+                                        this.MailApiKey);
                                 }
                                 catch (Exception ex)
                                 {
@@ -103,14 +110,6 @@ namespace tradebot.core
                                         message,
                                         this.MailApiKey);
                                 }
-
-                                await WaitUntilOrdersAreMatched(tradeInfo);
-
-                                await EmailHelper.SendEmail(
-                                    $"Trade successfully, please check!!!",
-                                    this.EmailTo,
-                                    "Trade successfully :)",
-                                    this.MailApiKey);
                             }
 
                             //TODO: Temporarily run only once
