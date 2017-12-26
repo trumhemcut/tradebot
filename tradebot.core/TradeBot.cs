@@ -157,6 +157,11 @@ namespace tradebot.core
             var buyWasMatched = false;
 
             Console.WriteLine("MATCH CHECKING ");
+            await EmailHelper.SendEmail(
+                $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Checking matching...",
+                this.EmailTo,
+                $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
+                this.MailApiKey);
 
             while (true)
             {
@@ -165,6 +170,11 @@ namespace tradebot.core
                     Console.WriteLine("");
                     Console.WriteLine("Sell order was matched.");
                     sellWasMatched = true;
+                    await EmailHelper.SendEmail(
+                        $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Sell order was matched",
+                        this.EmailTo,
+                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
+                        this.MailApiKey);
                 }
 
                 if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
@@ -172,6 +182,11 @@ namespace tradebot.core
                     Console.WriteLine("");
                     Console.WriteLine("Buy order was matched.");
                     buyWasMatched = true;
+                    await EmailHelper.SendEmail(
+                        $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Buy order was matched",
+                        this.EmailTo,
+                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
+                        this.MailApiKey);
                 }
                 if (sellWasMatched && buyWasMatched)
                 {
