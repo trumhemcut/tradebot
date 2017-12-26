@@ -47,13 +47,13 @@ namespace tradebot.core
             }
             else
             {
-                sellResult = await this.SellAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                sellResult = await this.SellAccount.Buy(TradeInfo.CoinQuantityAtSell, sellPrice);
                 if (!sellResult.Success)
                 {
                     Console.WriteLine($"Sell Order ERROR! {buyResult.ErrorMessage}, Buy Order was ignored");
                     return;
                 }
-                buyResult = await this.BuyAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+                buyResult = await this.BuyAccount.Sell(TradeInfo.CoinQuantityAtBuy, buyPrice);
             }
 
             Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
