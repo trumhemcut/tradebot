@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Binance.Net;
 using Binance.Net.Objects;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace tradebot.core
@@ -19,11 +20,14 @@ namespace tradebot.core
         public decimal CurrentBidPrice { get { return this.TradeCoin.CoinPrice.BidPrice; } }
         public decimal CurrentBidQty { get { return this.TradeCoin.CoinPrice.BidQuantity; } }
         public decimal CurrentAskQty { get { return this.TradeCoin.CoinPrice.AskQuantity; } }
+        private ILogger _logger;
+
         public BinanceAccount(string coin,
                               decimal tradingFee,
                               decimal bitcoinTransferFee,
                               string apiKey,
-                              string apiSecret)
+                              string apiSecret,
+                              ILogger logger)
         {
             BinanceDefaults.SetDefaultApiCredentials(apiKey, apiSecret);
 
@@ -31,6 +35,7 @@ namespace tradebot.core
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
             this.TradingFee = tradingFee;
+            this._logger = logger;
         }
 
         // Reference to https://www.binance.com/restapipub.html#user-content-market-data-endpoints
@@ -70,7 +75,11 @@ namespace tradebot.core
                         .Total;
                     return new TradeBotApiResult { Success = true };
                 }
-                return new TradeBotApiResult { Success = false, ErrorMessage = accountInfo.Error.Message };
+                else
+                {
+                    _logger.LogError(accountInfo.Error.Message);
+                    return new TradeBotApiResult { Success = false, ErrorMessage = accountInfo.Error.Message };
+                }
             }
         }
 
@@ -78,13 +87,6 @@ namespace tradebot.core
         {
             using (var binanceClient = new BinanceClient())
             {
-#if DEBUG
-                // MIN OF ORDER IS 0.01 BTC
-                // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
-
-                quantity = 50; //0.01M / price; // FOR TESTING
-#endif
-
                 var result = await binanceClient.PlaceOrderAsync(
                         $"{this.TradeCoin.Token}BTC",
                         OrderSide.Buy,
@@ -94,8 +96,12 @@ namespace tradebot.core
                         price
                 );
 
-                if (result.Success)
+                if (result.Success){
+                    _logger.LogInformation($"Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Data.OrderId;
+                }
+                else
+                    _logger.LogError(result.Error.Message);
 
                 return new TradeBotApiResult
                 {
@@ -109,11 +115,6 @@ namespace tradebot.core
         {
             using (var binanceClient = new BinanceClient())
             {
-#if DEBUG
-                // MIN OF ORDER IS 0.01 BTC
-                // https://www.reddit.com/r/binance/comments/74ocol/api_errorfilter_failure_min_notional/
-                quantity = 50; //0.01M / price; // FOR TESTING
-#endif
                 var result = await binanceClient.PlaceOrderAsync(
                         $"{this.TradeCoin.Token}BTC",
                         OrderSide.Sell,
@@ -124,7 +125,12 @@ namespace tradebot.core
                 );
 
                 if (result.Success)
+                {
                     this._currentOrderId = result.Data.OrderId;
+                    _logger.LogInformation($"Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
+                }
+                else
+                    _logger.LogError(result.Error.Message);
 
                 return new TradeBotApiResult
                 {

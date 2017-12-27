@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace tradebot.core
 {
@@ -7,21 +10,37 @@ namespace tradebot.core
     {
         public static ITradeBotBuilder UseCommandLine(this ITradeBotBuilder tradeBotBuilder, string[] args)
         {
-            // Example of CLI
-            // dotnet run ADA 0.0000100
+            var app = new CommandLineApplication();
+            app.HelpOption();
 
-            if (args.Length > 0)
-                tradeBotBuilder.UseSetting("Coin", args[0]);
+            var options = new Dictionary<string, CommandOption>();
+            options.Add("Coin", app.Option("-c|--coin <COIN>", "Trade Coin, e.g. ADA", CommandOptionType.SingleValue));
+            options.Add("ExpectedDelta", app.Option("-d|--delta <DELTA>", "Expected Delta, e.g. 0.00000010", CommandOptionType.SingleValue));
+            options.Add("IsAutoTrading", app.Option("-auto|--isautotrading", "Auto Trader Mode On/Off", CommandOptionType.NoValue));
+            options.Add("TradeFlow", app.Option("-f|--tradeflow <BuyAtBinanceSellAtBittrex>", "BuyAtBinanceSellAtBittrex or SellAtBinanceBuyAtBittrex", CommandOptionType.SingleValue));
+            options.Add("FixQuantity", app.Option("-q|--quantity <QUANTITY>", "Quantity to trade", CommandOptionType.SingleValue));
+            options.Add("PlusPointToWin", app.Option("-w|--win <PlusPointToWin>", "Plus Point To Win e.g. 0.00000003", CommandOptionType.SingleValue));
+            options.Add("TestMode", app.Option("-t|--testmode", "Test Mode On/Off", CommandOptionType.NoValue));
 
-            if (args.Length > 1)
-                tradeBotBuilder.UseSetting("ExpectedDelta", args[1]);
+            app.OnExecute(() =>
+            {
+                foreach (var option in options)
+                {
+                    if (option.Value.HasValue())
+                    {
+                        if (option.Value.OptionType == CommandOptionType.NoValue)
+                            tradeBotBuilder.UseSetting(option.Key, "true");
+                        else
+                            tradeBotBuilder.UseSetting(option.Key, option.Value.Value());
+                    }
+                }
+            });
 
-            if (args.Length > 2)
-                tradeBotBuilder.UseSetting("IsAutoTrading", args[2]);
+            app.Execute(args);
 
-            if (args.Length > 3)
-                tradeBotBuilder.UseSetting("TradeFlow", args[3]);
-
+            if(app.OptionHelp.HasValue())
+                Environment.Exit(1);
+            
             return tradeBotBuilder;
         }
 

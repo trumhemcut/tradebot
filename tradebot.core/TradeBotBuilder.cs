@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace tradebot.core
         private ServiceCollection _serviceCollection = new ServiceCollection();
         private Action<ServiceCollection> _configureServicesDelegate;
         private ILogger _logger;
-
+        private IServiceProvider _serviceProvider;
         public TradeBotBuilder()
         {
         }
@@ -22,12 +23,12 @@ namespace tradebot.core
         public ITradeBot Build()
         {
             this._configureServicesDelegate(this._serviceCollection);
-            var serviceProvider = this._serviceCollection.BuildServiceProvider();
+            this._serviceProvider = this._serviceCollection.BuildServiceProvider();
 
             this._options = new TradeBotOptions(this._configuration);
 
             // Configure logging
-            var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bot");
+            var logger = this._serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bot");
             this._logger = logger;
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
@@ -64,22 +65,23 @@ namespace tradebot.core
         }
         public ITradeBotBuilder UseDockerSecrets()
         {
-            const string KEY_EMAIL_APIKEY = "Email.ApiKey";
-            const string KEY_BINANCE_APIKEY = "BinanceAccount.API_KEY";
-            const string KEY_BINANCE_APISECRET = "BinanceAccount.API_SECRET";
-            const string KEY_BITTREX_APIKEY = "BittrexAccount.API_KEY";
-            const string KEY_BITTREX_APISECRET = "BittrexAccount.API_SECRET";
+            var secrets = new Dictionary<string, string>();
 
-            this.UseDockerSecretKey(KEY_EMAIL_APIKEY, "Email:ApiKey")
-                .UseDockerSecretKey(KEY_BINANCE_APIKEY, "BinanceAccount:API_KEY")
-                .UseDockerSecretKey(KEY_BINANCE_APISECRET, "BinanceAccount.API_SECRET")
-                .UseDockerSecretKey(KEY_BITTREX_APIKEY, "BittrexAccount.API_key")
-                .UseDockerSecretKey(KEY_BITTREX_APISECRET, "BittrexAccount.API_SECRET");
+            secrets.Add("Email.ApiKey", "Email:ApiKey");
+            secrets.Add("BinanceAccount.API_KEY", "BinanceAccount:API_KEY");
+            secrets.Add("BinanceAccount.API_SECRET", "BinanceAccount.API_SECRET");
+            secrets.Add("BittrexAccount.API_KEY", "BittrexAccount.API_key");
+            secrets.Add("BittrexAccount.API_SECRET", "BittrexAccount.API_SECRET");
+            
+            foreach (var secret in secrets)
+            {
+                this.UseDockerSecretKey(secret.Key, secret.Value);
+            }
 
             return this;
         }
 
-        public ITradeBotBuilder UseDockerSecretKey(string secretKey, string configKey)
+        private ITradeBotBuilder UseDockerSecretKey(string secretKey, string configKey)
         {
             var secretsPath = "/run/secrets/";
 
@@ -115,7 +117,8 @@ namespace tradebot.core
                                 bittrexTradingFee,
                                 bittrexBitcoinTransferFee,
                                 _configuration["BittrexAccount:API_KEY"],
-                                _configuration["BittrexAccount:API_SECRET"]);
+                                _configuration["BittrexAccount:API_SECRET"],
+                                _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bittrex"));
 
             var binanceTradingFee = Decimal.Parse(_configuration["BinanceAccount:TradingFee"]);
             var binanceBitcoinTransferFee = Decimal.Parse(_configuration["BinanceAccount:BitcoinTransferFee"]);
@@ -124,7 +127,8 @@ namespace tradebot.core
                                 binanceTradingFee,
                                 binanceBitcoinTransferFee,
                                 _configuration["BinanceAccount:API_KEY"],
-                                _configuration["BinanceAccount:API_SECRET"]);
+                                _configuration["BinanceAccount:API_SECRET"],
+                                _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Binance"));
 
 
             var tradeFlowAnalyzer = new TradeFlowAnalyzer(

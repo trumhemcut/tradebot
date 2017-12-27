@@ -20,12 +20,15 @@ namespace tradebot.core
         public string EmailTo { get { return this._options.EmailTo; } }
         public bool IsAutoTrading { get { return this._options.IsAutoTrading; } }
         public string Coin { get { return this._options.Coin; } }
+        public decimal PlusPointToWin { get { return this._options.PlusPointToWin; } }
         public TradeMode TradeMode { get { return this._options.TradeMode; } }
+        public decimal FixedQuantity { get { return this._options.FixedQuantity; } }
+        public bool TestMode { get { return this._options.InTestMode; } }
         private readonly TradeBotOptions _options;
         private readonly ILogger _logger;
 
         public TradeBot() { }
-        
+
         public TradeBot(TradeBotOptions options, ILogger logger)
         {
             this._timeLeftToSendEmail = 0;
@@ -47,9 +50,9 @@ namespace tradebot.core
 
                     TradeInfo tradeInfo = null;
 
-                    // FIX MODE: Buy 400 each a time
-                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = 400.4M;
-                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = 400M;
+                    // TODO: Currently in FIXED Mode, trademode should be configured
+                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = this.FixedQuantity * (1 + this.BuyAccount.TradingFee / 100);
+                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = this.FixedQuantity;
 
                     switch (this.TradeMode)
                     {
@@ -70,17 +73,17 @@ namespace tradebot.core
                                   $"BTC Profit: {Math.Round(tradeInfo.BitcoinProfit, 6)} * " +
                                   $"Coin Qt.: {Math.Round(tradeInfo.CoinQuantityAtSell)} * " +
                                   $"BTC Qt.: {Math.Round(tradeInfo.BitcoinQuantityAtBuy, 4)}";
-                    Console.WriteLine(content);
+                    _logger.LogInformation(content);
 
                     // Check to send notification
                     if (tradeInfo.DeltaBidAsk >= this.ExpectedDelta)
                     {
                         if (IsAutoTrading)
                         {
-                            Console.WriteLine("AutoTrader: ON");
+                            _logger.LogInformation("AutoTrader: ON");
                             if (!tradeInfo.Tradable)
                             {
-                                Console.WriteLine($"Not tradable: {tradeInfo.Message}");
+                                _logger.LogWarning($"Not tradable: {tradeInfo.Message}");
                                 await EmailHelper.SendEmail(
                                     $"Not tradable: {tradeInfo.Message}",
                                     this.EmailTo,
@@ -94,16 +97,32 @@ namespace tradebot.core
                                     var autoTrader = new AutoTrader(
                                         sellAccount: SellAccount,
                                         buyAccount: BuyAccount,
-                                        tradeInfo: tradeInfo
+                                        tradeInfo: tradeInfo,
+                                        plusPointToWin: this.PlusPointToWin,
+                                        testMode: this.TestMode,
+                                        logger: _logger
                                     );
-                                    await autoTrader.Trade();
-                                    await WaitUntilOrdersAreMatched(tradeInfo);
+                                    if (await autoTrader.Trade())
+                                    {
+                                        await WaitUntilOrdersAreMatched(tradeInfo);
 
-                                    await EmailHelper.SendEmail(
-                                        $"Trade successfully, please check!!!",
-                                        this.EmailTo,
-                                        "Trade successfully :)",
-                                        this.MailApiKey);
+                                        await EmailHelper.SendEmail(
+                                            $"Trade successfully, please check!!!",
+                                            this.EmailTo,
+                                            "Trade successfully :)",
+                                            this.MailApiKey);
+                                    }
+                                    else
+                                    {
+                                        await EmailHelper.SendEmail(
+                                            $"Trade error, please check!!!",
+                                            this.EmailTo,
+                                            "Trade error :(",
+                                            this.MailApiKey);
+
+                                        Console.WriteLine("Error occurred! Enter to continue, Ctrl+C to break:");
+                                        var input = Console.ReadLine();
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -123,8 +142,8 @@ namespace tradebot.core
                             //Console.WriteLine("Exit after trading successfully");
                             //return;
                         }
-                        Console.Write("Time to buy ...");
-                        Console.Write($"Send email in {_timeLeftToSendEmail}s...\n");
+                        _logger.LogInformation("Time to buy ...");
+                        _logger.LogInformation($"Send email in {_timeLeftToSendEmail}s...\n");
                         await SendMailIfTimePassed(tradeInfo, content);
                     }
                     else
@@ -138,10 +157,9 @@ namespace tradebot.core
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("we saw an error. Please try again!");
-                    Console.WriteLine(ex.Message);
+                    _logger.LogError(ex.Message);
                     if (ex.InnerException != null)
-                        Console.WriteLine(ex.InnerException.Message);
+                        _logger.LogError(ex.InnerException.Message);
 
                     errorCount++;
                     if (errorCount > 100)
@@ -163,7 +181,7 @@ namespace tradebot.core
             var sellWasMatched = false;
             var buyWasMatched = false;
 
-            Console.WriteLine("MATCH CHECKING ");
+            _logger.LogInformation("MATCH CHECKING");
             await EmailHelper.SendEmail(
                 $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Checking matching...",
                 this.EmailTo,
@@ -175,7 +193,7 @@ namespace tradebot.core
                 if (await this.SellAccount.IsOrderMatched() && !sellWasMatched)
                 {
                     Console.WriteLine("");
-                    Console.WriteLine("Sell order was matched.");
+                    _logger.LogInformation("Sell order was matched.");
                     sellWasMatched = true;
                     await EmailHelper.SendEmail(
                         $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Sell order was matched",
@@ -187,7 +205,7 @@ namespace tradebot.core
                 if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
                 {
                     Console.WriteLine("");
-                    Console.WriteLine("Buy order was matched.");
+                    _logger.LogInformation("Buy order was matched.");
                     buyWasMatched = true;
                     await EmailHelper.SendEmail(
                         $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Buy order was matched",
@@ -197,7 +215,7 @@ namespace tradebot.core
                 }
                 if (sellWasMatched && buyWasMatched)
                 {
-                    Console.WriteLine("SUCCESSFUL! Sell & buy were matched.");
+                    _logger.LogInformation("SUCCESSFUL! Sell & buy were matched.");
                     break;
                 }
                 Console.Write(".");
@@ -230,16 +248,10 @@ namespace tradebot.core
             await Task.WhenAll(updateBuyBalances, updateSellBalances);
 
             if (!updateBuyBalances.Result.Success)
-            {
-                Console.WriteLine($"Update buy balance error: {updateBuyBalances.Result.ErrorMessage}");
                 return false;
-            }
 
             if (!updateSellBalances.Result.Success)
-            {
-                Console.WriteLine($"Update buy balance error: {updateSellBalances.Result.ErrorMessage}");
                 return false;
-            }
 
             return true;
         }

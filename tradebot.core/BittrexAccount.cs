@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Bittrex.Net;
 using Bittrex.Net.Objects;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace tradebot.core
@@ -19,18 +20,20 @@ namespace tradebot.core
         public decimal CurrentBidPrice { get { return this.TradeCoin.CoinPrice.BidPrice; } }
         public decimal CurrentBidQty { get { return this.TradeCoin.CoinPrice.BidQuantity; } }
         public decimal CurrentAskQty { get { return this.TradeCoin.CoinPrice.AskQuantity; } }
-
+        private ILogger _logger;
         public BittrexAccount(string coin,
                               decimal tradingFee,
                               decimal bitcoinTransferFee,
                               string apiKey,
-                              string apiSecret)
+                              string apiSecret,
+                              ILogger logger)
         {
             BittrexDefaults.SetDefaultApiCredentials(apiKey, apiSecret);
 
             this.TradeCoin = new Coin { Token = coin };
             this.Bitcoin = new Coin { Token = "BTC", TransferFee = bitcoinTransferFee };
             this.TradingFee = tradingFee;
+            this._logger = logger;
         }
 
         public async Task UpdatePrices()
@@ -67,6 +70,10 @@ namespace tradebot.core
                                            0 : bitcoinBalanceResult.Result.Balance;
                     return new TradeBotApiResult { Success = true };
                 }
+                else
+                {
+                    _logger.LogError(coinBalanceResult.Error.ErrorMessage);
+                }
                 return new TradeBotApiResult { Success = false, ErrorMessage = coinBalanceResult.Error.ErrorMessage };
             }
         }
@@ -74,18 +81,20 @@ namespace tradebot.core
         {
             using (var bittrexClient = new BittrexClient())
             {
-#if DEBUG
-                quantity = 50; //0.01M / price; // FOR TESTING
-#endif
-
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Buy,
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
-                
+
                 if (result.Success)
+                {
+                    _logger.LogInformation($"Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Result.Uuid;
+                }
+                else
+                    _logger.LogError(result.Error.ErrorMessage);
+
                 return new TradeBotApiResult
                 {
                     Success = result.Success,
@@ -98,18 +107,19 @@ namespace tradebot.core
         {
             using (var bittrexClient = new BittrexClient())
             {
-#if DEBUG
-                quantity = 50; // FOR TESTING
-#endif
-
                 var result = await bittrexClient.PlaceOrderAsync(
                     OrderType.Sell,
                     $"BTC-{this.TradeCoin.Token}",
                     quantity,
                     price);
 
-                if (result.Success)
+                if (result.Success){
+                    _logger.LogInformation($"Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Result.Uuid;
+                }
+                else
+                    _logger.LogError(result.Error.ErrorMessage);
+                
                 return new TradeBotApiResult
                 {
                     Success = result.Success,

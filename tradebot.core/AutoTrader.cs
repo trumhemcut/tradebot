@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace tradebot.core
 {
@@ -9,69 +10,64 @@ namespace tradebot.core
         public ITradeAccount SellAccount { get; set; }
         public TradeInfo TradeInfo { get; set; }
         public TradeInfo FinegrainedTradeInfo { get; set; }
+        public decimal PlusPointToWin { get; set; }
+        public bool TestMode { get; set; }
+        private ILogger _logger;
         public AutoTrader(
             ITradeAccount buyAccount,
             ITradeAccount sellAccount,
-            TradeInfo tradeInfo)
+            TradeInfo tradeInfo,
+            decimal plusPointToWin,
+            bool testMode,
+            ILogger logger)
         {
             this.BuyAccount = buyAccount;
             this.SellAccount = sellAccount;
             this.TradeInfo = tradeInfo;
+            this.PlusPointToWin = plusPointToWin;
+            this.TestMode = testMode;
+            this._logger = logger;
         }
 
-        public async Task Trade()
+        public async Task<bool> Trade()
         {
-            var plusPointToWin = 0.00000003M;
 #if DEBUG
-            plusPointToWin = -0.00000230M;
-            // plusPointToWin = 0.00000003M;
+            this.TestMode = true;
 #endif
+            if (this.TestMode)
+            {
+                // this.PlusPointToWin = -0.00000900M;
+                this.PlusPointToWin = -1.00000900M;
+                this.TradeInfo.CoinQuantityAtBuy = 30;
+                this.TradeInfo.CoinQuantityAtSell = 30;
+            }
 
-            var buyPrice = TradeInfo.BuyPrice + plusPointToWin;
-            var sellPrice = TradeInfo.SellPrice - plusPointToWin;
+            var buyPrice = TradeInfo.BuyPrice + this.PlusPointToWin;
+            var sellPrice = TradeInfo.SellPrice - this.PlusPointToWin;
 
             TradeBotApiResult buyResult = null, sellResult = null;
 
             // Since we experienced many times that Binance throws issues usually.
             // We will stop this if Binance is not successful
-            
+
             if (this.BuyAccount is BinanceAccount)
             {
                 buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
                 if (!buyResult.Success)
-                {
-                    Console.WriteLine($"Buy Order ERROR! {buyResult.ErrorMessage}, Sell Order was ignored");
-                    return;
-                }
+                    return false;
+
                 sellResult = await this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
             }
             else
             {
                 sellResult = await this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
                 if (!sellResult.Success)
-                {
-                    Console.WriteLine($"Sell Order ERROR! {buyResult.ErrorMessage}, Buy Order was ignored");
-                    return;
-                }
+                    return false;
+                
                 buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
             }
 
-            Console.Write($"Buy {TradeInfo.CoinQuantityAtBuy}, price: {buyPrice}");
-            if (buyResult.Success)
-                Console.Write("...OK!");
-            else
-                Console.WriteLine(buyResult.ErrorMessage);
-
-            Console.WriteLine("");
-            Console.WriteLine("");
-
-            Console.Write($"Sell {TradeInfo.CoinQuantityAtBuy}, price: {sellPrice}");
-            if (sellResult.Success)
-                Console.Write("...OK!");
-            else
-                Console.WriteLine(sellResult.ErrorMessage);
-            Console.WriteLine("");
-
+            return buyResult.Success && sellResult.Success;
         }
 
         public void PrintDashboard()
