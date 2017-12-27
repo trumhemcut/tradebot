@@ -44,6 +44,13 @@ namespace tradebot.core
                 tradeInfo.Tradable = false;
             }
 
+            var profit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
+            if (profit <= 0)
+            {
+                tradeInfo.Message = $"Profit is too low: {Math.Round(profit, 8)}";
+                tradeInfo.Tradable = false;
+            }
+
             tradeInfo.DeltaBidAsk = deltaBidAsk;
             tradeInfo.DeltaBidBid = deltaBidBid;
             tradeInfo.BitcoinQuantityAtSell = bitcoinQuantityAtSell;
