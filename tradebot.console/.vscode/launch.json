@@ -13,11 +13,11 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.0/tradebot.dll",
             "args": [
                 "-c", "ADA",
-                "-d", "0.00000010",
+                "-d", "0.00000010M",
                 "-auto", 
                 "-f", "SellAtBinanceBuyAtBittrex",
-                "-q", "50",
-                "-w", "0.00000000"
+                "-q", "50.00000000M",
+                "-w", "0.00000000M"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
