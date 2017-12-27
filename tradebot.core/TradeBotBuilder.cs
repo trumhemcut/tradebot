@@ -16,6 +16,7 @@ namespace tradebot.core
         private Action<ServiceCollection> _configureServicesDelegate;
         private ILogger _logger;
         private IServiceProvider _serviceProvider;
+        private Dictionary<string, string> _dockerSecrets = new Dictionary<string, string>();
         public TradeBotBuilder()
         {
         }
@@ -63,32 +64,23 @@ namespace tradebot.core
 
             return this;
         }
-        public ITradeBotBuilder UseDockerSecrets()
+        public ITradeBotBuilder AddDockerSecret(string secretKey, string configKey)
         {
-            var secrets = new Dictionary<string, string>();
-
-            secrets.Add("Email.ApiKey", "Email:ApiKey");
-            secrets.Add("BinanceAccount.API_KEY", "BinanceAccount:API_KEY");
-            secrets.Add("BinanceAccount.API_SECRET", "BinanceAccount.API_SECRET");
-            secrets.Add("BittrexAccount.API_KEY", "BittrexAccount.API_key");
-            secrets.Add("BittrexAccount.API_SECRET", "BittrexAccount.API_SECRET");
-            
-            foreach (var secret in secrets)
-            {
-                this.UseDockerSecretKey(secret.Key, secret.Value);
-            }
+            this._dockerSecrets.Add(secretKey, configKey);
 
             return this;
         }
-
-        private ITradeBotBuilder UseDockerSecretKey(string secretKey, string configKey)
+        private ITradeBotBuilder UseDockerSecrets()
         {
             var secretsPath = "/run/secrets/";
-
-            if (File.Exists($"{secretsPath}{secretKey}"))
+            foreach (var secret in this._dockerSecrets)
             {
-                _logger.LogDebug($"Found {secretKey} in Docker Secrets");
-                this.UseSetting(configKey, File.ReadAllText($"{secretsPath}{secretKey}"));
+                if (File.Exists($"{secretsPath}{secret.Key}"))
+                {
+                    _logger.LogDebug($"Found {secret.Key} in Docker Secrets");
+                    this.UseSetting(secret.Value, File.ReadAllText($"{secretsPath}{secret.Key}"));
+                }
+
             }
 
             return this;

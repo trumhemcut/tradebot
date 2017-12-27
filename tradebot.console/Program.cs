@@ -33,9 +33,12 @@ namespace tradebot.console
                                         .AddDebug());
                             })
                             .UseCommandLine(args)
-                            .UseDockerSecrets()
+                            .AddDockerSecret("Email.ApiKey", "Email:ApiKey")
+                            .AddDockerSecret("BinanceAccount.API_KEY", "BinanceAccount:API_KEY")
+                            .AddDockerSecret("BinanceAccount.API_SECRET", "BinanceAccount.API_SECRET")
+                            .AddDockerSecret("BittrexAccount.API_KEY", "BittrexAccount.API_key")
+                            .AddDockerSecret("BittrexAccount.API_SECRET", "BittrexAccount.API_SECRET")
                             .Build();
-
             return tradeBot;
         }
     }
