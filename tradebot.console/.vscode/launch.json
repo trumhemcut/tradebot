@@ -12,7 +12,12 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.0/tradebot.dll",
             "args": [
-                "-t"
+                "-c", "ADA",
+                "-d", "0.00000010",
+                "-auto", 
+                "-f", "SellAtBinanceBuyAtBittrex",
+                "-q", "50",
+                "-w", "0.00000000"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -30,11 +35,12 @@
             "name": "tradebot.console (Docker attach)",
             "type": "coreclr",
             "request": "attach",
-
             "processId": "${command:pickRemoteProcess}",
             "pipeTransport": {
                 "pipeProgram": "docker",
-                "pipeArgs": [ "exec -i tradebot-debug" ],
+                "pipeArgs": [
+                    "exec -i tradebot-debug"
+                ],
                 "debuggerPath": "/root/vsdbg/vsdbg",
                 "pipeCwd": "${workspaceRoot}",
                 "quoteArgs": false

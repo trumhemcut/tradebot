@@ -51,14 +51,16 @@ namespace tradebot.core
                     TradeInfo tradeInfo = null;
 
                     // TODO: Currently in FIXED Mode, trademode should be configured
-                    this.BuyAccount.TradeCoin.CoinPrice.AskQuantity = this.FixedQuantity * (1 + this.BuyAccount.TradingFee / 100);
-                    this.SellAccount.TradeCoin.CoinPrice.BidQuantity = this.FixedQuantity;
 
                     switch (this.TradeMode)
                     {
                         case TradeMode.FinegrainedTrade:
                             tradeInfo = new TradeInfoAnalyzer(this._options)
                                             .AnalyzeDeltaFinegrainedMode();
+                            break;
+                        case TradeMode.FixedMode:
+                            tradeInfo = new TradeInfoAnalyzer(this._options)
+                                            .AnalyzeDataFixedMode(this.FixedQuantity);
                             break;
                         case TradeMode.NormalTrade:
                         default:
