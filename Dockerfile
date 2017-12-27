@@ -19,4 +19,4 @@ COPY --from=build-env /app/tradebot.console/out ./
 ENTRYPOINT ["dotnet", "tradebot.dll"]
 
 # ADA by default
-CMD [ "ADA 0.00000100" ]
+CMD [ "--help" ]
