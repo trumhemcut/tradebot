@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,6 +14,9 @@ namespace tradebot.console
         public static IConfigurationRoot Configuration { get; set; }
         static void Main(string[] args)
         {
+            // Workaround Ctrl+C on Docker
+            Console.CancelKeyPress += (_, __) => { Environment.Exit(1); };
+
             var tradebot = CreateBot(args);
             tradebot.Execute().Wait();
         }
@@ -26,7 +31,8 @@ namespace tradebot.console
                                       .AddJsonFile("appsettings.dev.json", optional: true)
                                       .AddEnvironmentVariables();
                             })
-                            .ConfigureServices(services => {
+                            .ConfigureServices(services =>
+                            {
                                 services.AddSingleton<ILoggerFactory>(
                                     new LoggerFactory()
                                         .AddConsole()

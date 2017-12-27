@@ -120,8 +120,8 @@ namespace tradebot.core
                                             "Trade error :(",
                                             this.MailApiKey);
 
-                                        Console.WriteLine("Error occurred! Enter to continue, Ctrl+C to break:");
-                                        var input = Console.ReadLine();
+                                        _logger.LogCritical("Trading Error occurred! Exit for now...");
+                                        Environment.Exit(1);
                                     }
                                 }
                                 catch (Exception ex)
