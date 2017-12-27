@@ -25,11 +25,11 @@ namespace tradebot.core
             var deltaBidBid = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
                               this._buyAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var coinQtyAtBuy = quantity * (1 + this._buyAccount.TradingFee / 100);
+            var coinQtyAtBuy = quantity;//* (1 + this._buyAccount.TradingFee / 100);
             var coinQtyAtSell = quantity;
 
             var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQtyAtSell * (1 - this._sellAccount.TradingFee / 100);
-            var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQtyAtBuy;
+            var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQtyAtBuy * (1 + this._buyAccount.TradingFee / 100);
 
             // Check coin balances at both side to make sure it's ok to order
             if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
