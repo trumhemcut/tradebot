@@ -1,6 +1,5 @@
 tradebot.console/bin/
 tradebot.console/obj/
-tradebot.console/.vscode/
 tradebot.console/appsettings.dev.json
 tradebot.tests/bin/
 tradebot.tests/obj/

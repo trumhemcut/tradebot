@@ -1,0 +1,16 @@
+FROM microsoft/dotnet
+RUN apt-get update
+RUN apt-get -y install curl unzip
+
+RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
+RUN apt-get install -y procps
+
+WORKDIR /app
+
+COPY . ./
+
+WORKDIR /app/tradebot.console
+ENTRYPOINT ["dotnet", "run"]
+
+# ADA by default
+CMD [ "ADA 0.00000100" ]

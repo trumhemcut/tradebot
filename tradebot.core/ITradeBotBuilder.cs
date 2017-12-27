@@ -11,6 +11,8 @@ namespace tradebot.core
         ITradeBotBuilder ConfigureServices(Action<IServiceCollection> serviceCollectionDelegate);
         ITradeBot Build();
         ITradeBotBuilder UseSetting(string key, string value);
+        ITradeBotBuilder UseDockerSecrets();
+        ITradeBotBuilder UseDockerSecretKey(string secretKey, string configKey);
         ITradeBotBuilder SetSellAccount(ITradeAccount sellAccount);
         ITradeBotBuilder SetBuyAccount(ITradeAccount buyAccount);
     }

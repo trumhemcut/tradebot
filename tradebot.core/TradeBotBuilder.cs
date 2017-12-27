@@ -13,6 +13,7 @@ namespace tradebot.core
         private TradeBotOptions _options;
         private ServiceCollection _serviceCollection = new ServiceCollection();
         private Action<ServiceCollection> _configureServicesDelegate;
+        private ILogger _logger;
 
         public TradeBotBuilder()
         {
@@ -27,6 +28,7 @@ namespace tradebot.core
 
             // Configure logging
             var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bot");
+            this._logger = logger;
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
             this._options.BuyAccount = tradeFlowAnalyzer.BuyAccount;
@@ -57,6 +59,35 @@ namespace tradebot.core
         public ITradeBotBuilder UseSetting(string key, string value)
         {
             this._configuration[key] = value;
+
+            return this;
+        }
+        public ITradeBotBuilder UseDockerSecrets()
+        {
+            const string KEY_EMAIL_APIKEY = "Email.ApiKey";
+            const string KEY_BINANCE_APIKEY = "BinanceAccount.API_KEY";
+            const string KEY_BINANCE_APISECRET = "BinanceAccount.API_SECRET";
+            const string KEY_BITTREX_APIKEY = "BittrexAccount.API_KEY";
+            const string KEY_BITTREX_APISECRET = "BittrexAccount.API_SECRET";
+
+            this.UseDockerSecretKey(KEY_EMAIL_APIKEY, "Email:ApiKey")
+                .UseDockerSecretKey(KEY_BINANCE_APIKEY, "BinanceAccount:API_KEY")
+                .UseDockerSecretKey(KEY_BINANCE_APISECRET, "BinanceAccount.API_SECRET")
+                .UseDockerSecretKey(KEY_BITTREX_APIKEY, "BittrexAccount.API_key")
+                .UseDockerSecretKey(KEY_BITTREX_APISECRET, "BittrexAccount.API_SECRET");
+
+            return this;
+        }
+
+        public ITradeBotBuilder UseDockerSecretKey(string secretKey, string configKey)
+        {
+            var secretsPath = "/run/secrets/";
+
+            if (File.Exists($"{secretsPath}{secretKey}"))
+            {
+                _logger.LogDebug($"Found {secretKey} in Docker Secrets");
+                this.UseSetting(configKey, File.ReadAllText($"{secretsPath}{secretKey}"));
+            }
 
             return this;
         }

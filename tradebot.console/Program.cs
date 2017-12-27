@@ -33,6 +33,7 @@ namespace tradebot.console
                                         .AddDebug());
                             })
                             .UseCommandLine(args)
+                            .UseDockerSecrets()
                             .Build();
 
             return tradeBot;
