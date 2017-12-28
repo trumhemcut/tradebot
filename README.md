@@ -29,6 +29,14 @@ docker run -d --name xvgbot trumhemcut/tradebot \
 docker run --it testbot trumhemcut/tradebot -h
 ```
 
+## Configure for production environment
+Please email me at trumhemcut@hotmail.com, I'll charge 40/h or 2000ADA (Cardano) for one bot configuration.
+
+My ADA wallet address:
+```
+DdzFFzCqrhseGFdRvddihfs61xgvqgBEgyExYQH7h3De18hEfFW8nhpgRC4zCiuRApYgNBrk1LiCp4EGcaiiffHZY4L2xU5BAZtEp41n
+```
+
 **Be carefull in release mode!!!**
 
 * Ăn cơm với muối mà nói chuyện trên núi
