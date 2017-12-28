@@ -30,7 +30,7 @@ docker run --it testbot trumhemcut/tradebot -h
 ```
 
 ## Configure for production environment
-Please email me at trumhemcut@hotmail.com, I'll charge 40/h or 2000ADA (Cardano) for one bot configuration.
+Please email me at trumhemcut@hotmail.com, I'll charge 80ADA/h or 2000ADA (Cardano) for one bot configuration.
 
 My ADA wallet address:
 ```
