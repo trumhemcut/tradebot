@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 namespace tradebot.core
@@ -15,6 +16,7 @@ namespace tradebot.core
         public TradeFlow TradeFlow { get; set; }
         public ITradeAccount BuyAccount { get; set; }
         public ITradeAccount SellAccount { get; set; }
+        public List<ITradeAccount> TradeAccounts { get; set; }
         public TradeMode TradeMode { get; set; }
         public decimal PlusPointToWin { get; set; }
         public bool InTestMode { get; set; }

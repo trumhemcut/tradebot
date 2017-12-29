@@ -33,6 +33,7 @@ namespace tradebot.core
             this._logger = logger;
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
+            this._options.TradeAccounts = tradeFlowAnalyzer.TradeAccounts;
             this._options.BuyAccount = tradeFlowAnalyzer.BuyAccount;
             this._options.SellAccount = tradeFlowAnalyzer.SellAccount;
 
@@ -122,10 +123,11 @@ namespace tradebot.core
                                 _configuration["BinanceAccount:API_SECRET"],
                                 _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Binance"));
 
+            var tradeAccounts = new List<ITradeAccount>()
+                                    .AddTradeAccount(binanceAccount)
+                                    .AddTradeAccount(bittrexAccount);
 
-            var tradeFlowAnalyzer = new TradeFlowAnalyzer(
-                this._options.TradeFlow, binanceAccount, bittrexAccount
-            );
+            var tradeFlowAnalyzer = new TradeFlowAnalyzer(this._options.TradeFlow, tradeAccounts);
 
             return tradeFlowAnalyzer;
         }

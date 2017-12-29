@@ -8,16 +8,21 @@ namespace tradebot.core
 {
     public static class TradeBotBuilderExtensions
     {
+        public static List<ITradeAccount> AddTradeAccount(this List<ITradeAccount> tradeAccounts, ITradeAccount tradeAccount)
+        {
+            tradeAccounts.Add(tradeAccount);
+            return tradeAccounts;
+        }
         public static ITradeBotBuilder UseCommandLine(this ITradeBotBuilder tradeBotBuilder, string[] args)
         {
             var app = new CommandLineApplication();
             app.HelpOption();
 
             var options = new Dictionary<string, CommandOption>();
-            options.Add("Coin", app.Option("-c|--coin <COIN>", "Trade Coin, e.g. ADA", CommandOptionType.SingleValue));
+            options.Add("Coin", app.Option("-c|--coin <COIN>", "Trade Coin, e.g. ADA | XVG", CommandOptionType.SingleValue));
             options.Add("ExpectedDelta", app.Option("-d|--delta <DELTA>", "Expected Delta, e.g. 0.00000010", CommandOptionType.SingleValue));
             options.Add("IsAutoTrading", app.Option("-auto|--isautotrading", "Auto Trader Mode On/Off", CommandOptionType.NoValue));
-            options.Add("TradeFlow", app.Option("-f|--tradeflow <BuyAtBinanceSellAtBittrex>", "BuyAtBinanceSellAtBittrex or SellAtBinanceBuyAtBittrex", CommandOptionType.SingleValue));
+            options.Add("TradeFlow", app.Option("-f|--tradeflow <BuyAtBinanceSellAtBittrex>", "BuyAtBinanceSellAtBittrex | SellAtBinanceBuyAtBittrex | AutoSwitch", CommandOptionType.SingleValue));
             options.Add("FixQuantity", app.Option("-q|--quantity <QUANTITY>", "Quantity to trade", CommandOptionType.SingleValue));
             options.Add("PlusPointToWin", app.Option("-w|--win <PlusPointToWin>", "Plus Point To Win e.g. 0.00000003", CommandOptionType.SingleValue));
             options.Add("TestMode", app.Option("-t|--testmode", "Test Mode On/Off", CommandOptionType.NoValue));
@@ -38,9 +43,9 @@ namespace tradebot.core
 
             app.Execute(args);
 
-            if(app.OptionHelp.HasValue())
+            if (app.OptionHelp.HasValue())
                 Environment.Exit(1);
-            
+
             return tradeBotBuilder;
         }
 

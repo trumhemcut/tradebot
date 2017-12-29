@@ -1,18 +1,58 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace tradebot.core
 {
+    // TradeInfo is very important class
+    // since it will decide which action to follow
+    // The other class should read data from it rather refer to other proprerties from TradeBot
     public class TradeInfoAnalyzer
     {
-        private readonly ITradeAccount _sellAccount;
-        private readonly ITradeAccount _buyAccount;
-        private readonly decimal _bitcoinTradingAmount;
+        public ITradeAccount SellAccount { get { return this._options.SellAccount; } }
+        public ITradeAccount BuyAccount { get { return this._options.BuyAccount; } }
+        public decimal BitcoinTradingAmount { get { return this._options.BitcoinTradingAmount; } }
+        public List<ITradeAccount> TradeAccounts { get { return this._options.TradeAccounts; } }
+        public TradeFlow TradeFlow { get { return this._options.TradeFlow; } }
+        private TradeBotOptions _options;
 
-        public TradeInfoAnalyzer(TradeBotOptions tradeOptions)
+        public TradeInfoAnalyzer(
+            TradeBotOptions tradeOptions)
         {
-            this._buyAccount = tradeOptions.BuyAccount;
-            this._sellAccount = tradeOptions.SellAccount;
-            this._bitcoinTradingAmount = tradeOptions.BitcoinTradingAmount;
+            this._options = tradeOptions;
+        }
+        public async Task UpdateCoinPrices()
+        {
+            var updatePrices = new List<Task>();
+            this.TradeAccounts.ForEach(acc => updatePrices.Add(acc.UpdatePrices()));
+            await Task.WhenAll(updatePrices);
+
+            if (this.TradeFlow == TradeFlow.AutoSwitch)
+                AnalyzeFlowAgain();
+        }
+
+        private void AnalyzeFlowAgain()
+        {
+            var accHasMaxBidPrice = this.TradeAccounts.OrderByDescending(acc => acc.CurrentBidPrice)
+                                                       .FirstOrDefault();
+            var accHasMinAskPrice = this.TradeAccounts.OrderBy(acc => acc.CurrentAskPrice)
+                                                       .FirstOrDefault();
+            if (accHasMaxBidPrice != accHasMinAskPrice)
+            {
+                this._options.SellAccount = accHasMaxBidPrice;
+                this._options.BuyAccount = accHasMinAskPrice;
+            }
+        }
+
+        public async Task<bool> UpdateBalances()
+        {
+            var updateBalances = new List<Task<TradeBotApiResult>>();
+            this.TradeAccounts.ForEach(acc => updateBalances.Add(acc.UpdateBalances()));
+            await Task.WhenAll(updateBalances);
+
+            return !updateBalances.Where(balanceResult => balanceResult.Result.Success == false)
+                                  .Any();
         }
         public TradeInfo AnalyzeDataFixedMode(decimal quantity)
         {
@@ -20,27 +60,27 @@ namespace tradebot.core
             tradeInfo.Message = "OK to buy";
             tradeInfo.Tradable = true;
 
-            var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.BidPrice;
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var coinQtyAtBuy = quantity* (1.00000000M + this._buyAccount.TradingFee / 100.00000000M);
+            var coinQtyAtBuy = quantity;//* (1 + this._buyAccount.TradingFee / 100);
             var coinQtyAtSell = quantity;
 
-            var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQtyAtSell * (1.00000000M - this._sellAccount.TradingFee / 100.00000000M);
-            var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQtyAtBuy;
+            var bitcoinQuantityAtSell = this.SellAccount.CurrentBidPrice * coinQtyAtSell * (1 - this.SellAccount.TradingFee / 100);
+            var bitcoinQuantityAtBuy = this.BuyAccount.CurrentAskPrice * coinQtyAtBuy * (1 + this.BuyAccount.TradingFee / 100);
 
             // Check coin balances at both side to make sure it's ok to order
-            if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
+            if (bitcoinQuantityAtBuy >= this.BuyAccount.Bitcoin.Balance)
             {
                 tradeInfo.Message = "Bitcoin is not enough to buy.";
                 tradeInfo.Tradable = false;
             }
 
-            if (this._sellAccount.TradeCoin.Balance < 0.01M / this._sellAccount.CurrentAskPrice)
+            if (this.SellAccount.TradeCoin.Balance < 0.01M / this.SellAccount.CurrentAskPrice)
             {
-                tradeInfo.Message = $"{this._sellAccount.TradeCoin.Token} quantity is too low to set order.";
+                tradeInfo.Message = $"{this.SellAccount.TradeCoin.Token} quantity is too low to set order.";
                 tradeInfo.Tradable = false;
             }
 
@@ -59,8 +99,8 @@ namespace tradebot.core
             tradeInfo.CoinQuantityAtBuy = coinQtyAtBuy;
             tradeInfo.CoinProfit = 0;
             tradeInfo.BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
-            tradeInfo.SellPrice = _sellAccount.CurrentBidPrice;
-            tradeInfo.BuyPrice = _buyAccount.CurrentAskPrice;
+            tradeInfo.SellPrice = this.SellAccount.CurrentBidPrice;
+            tradeInfo.BuyPrice = this.BuyAccount.CurrentAskPrice;
 
             return tradeInfo;
         }
@@ -70,32 +110,32 @@ namespace tradebot.core
             tradeInfo.Message = "OK to buy";
             tradeInfo.Tradable = true;
 
-            var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.BidPrice;
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
 
             // Decide Quantity to sell / buy
             // Sell & buy at the same quantity to be easily manage
-            var coinQty = this._buyAccount.CurrentAskQty < this._sellAccount.CurrentBidQty ?
-                           this._buyAccount.CurrentAskQty : this._sellAccount.CurrentBidQty;
+            var coinQty = this.BuyAccount.CurrentAskQty < this.SellAccount.CurrentBidQty ?
+                           this.BuyAccount.CurrentAskQty : this.SellAccount.CurrentBidQty;
 
-            coinQty = coinQty < this._sellAccount.TradeCoin.Balance ?
-                      coinQty : this._sellAccount.TradeCoin.Balance;
+            coinQty = coinQty < this.SellAccount.TradeCoin.Balance ?
+                      coinQty : this.SellAccount.TradeCoin.Balance;
 
-            var bitcoinQuantityAtSell = this._sellAccount.CurrentBidPrice * coinQty * (1 - this._sellAccount.TradingFee / 100);
-            var bitcoinQuantityAtBuy = this._buyAccount.CurrentAskPrice * coinQty * (1 - this._buyAccount.TradingFee / 100);
+            var bitcoinQuantityAtSell = this.SellAccount.CurrentBidPrice * coinQty * (1 - this.SellAccount.TradingFee / 100);
+            var bitcoinQuantityAtBuy = this.BuyAccount.CurrentAskPrice * coinQty * (1 - this.BuyAccount.TradingFee / 100);
 
             // Check coin balances at both side to make sure it's ok to order
-            if (bitcoinQuantityAtBuy >= this._buyAccount.Bitcoin.Balance)
+            if (bitcoinQuantityAtBuy >= this.BuyAccount.Bitcoin.Balance)
             {
                 tradeInfo.Message = "Bitcoin is not enough to buy.";
                 tradeInfo.Tradable = false;
             }
 
-            if (this._sellAccount.TradeCoin.Balance < 0.01M / this._sellAccount.CurrentAskPrice)
+            if (this.SellAccount.TradeCoin.Balance < 0.01M / this.SellAccount.CurrentAskPrice)
             {
-                tradeInfo.Message = $"{this._sellAccount.TradeCoin.Token} quantity is too low to set order.";
+                tradeInfo.Message = $"{this.SellAccount.TradeCoin.Token} quantity is too low to set order.";
                 tradeInfo.Tradable = false;
             }
 
@@ -107,24 +147,24 @@ namespace tradebot.core
             tradeInfo.CoinQuantityAtBuy = coinQty;
             tradeInfo.CoinProfit = 0;
             tradeInfo.BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
-            tradeInfo.SellPrice = _sellAccount.CurrentBidPrice;
-            tradeInfo.BuyPrice = _buyAccount.CurrentAskPrice;
+            tradeInfo.SellPrice = this.SellAccount.CurrentBidPrice;
+            tradeInfo.BuyPrice = this.BuyAccount.CurrentAskPrice;
 
             return tradeInfo;
         }
         public TradeInfo AnalyzeDeltaNormalMode()
         {
-            var deltaBidAsk = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.AskPrice;
-            var deltaBidBid = this._sellAccount.TradeCoin.CoinPrice.BidPrice -
-                              this._buyAccount.TradeCoin.CoinPrice.BidPrice;
+            var deltaBidAsk = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
+            var deltaBidBid = this.SellAccount.TradeCoin.CoinPrice.BidPrice -
+                              this.BuyAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var bitcoinQuantityAtSell = (this._bitcoinTradingAmount + this._sellAccount.Bitcoin.TransferFee) *
-                                      (1 + this._sellAccount.TradingFee / 100);
-            var coinQuantityAtSell = bitcoinQuantityAtSell / this._sellAccount.TradeCoin.CoinPrice.BidPrice;
+            var bitcoinQuantityAtSell = (this.BitcoinTradingAmount + this.SellAccount.Bitcoin.TransferFee) *
+                                      (1 + this.SellAccount.TradingFee / 100);
+            var coinQuantityAtSell = bitcoinQuantityAtSell / this.SellAccount.TradeCoin.CoinPrice.BidPrice;
 
-            var bitcoinQuantityAtBuy = this._bitcoinTradingAmount * (1 - this._buyAccount.TradingFee / 100);
-            var coinQuantityAtBuy = bitcoinQuantityAtBuy / this._buyAccount.TradeCoin.CoinPrice.AskPrice;
+            var bitcoinQuantityAtBuy = this.BitcoinTradingAmount * (1 - this.BuyAccount.TradingFee / 100);
+            var coinQuantityAtBuy = bitcoinQuantityAtBuy / this.BuyAccount.TradeCoin.CoinPrice.AskPrice;
 
             return new TradeInfo
             {
@@ -135,8 +175,8 @@ namespace tradebot.core
                 BitcoinQuantityAtBuy = bitcoinQuantityAtBuy,
                 CoinQuantityAtBuy = coinQuantityAtBuy,
                 CoinProfit = coinQuantityAtBuy - coinQuantityAtSell,
-                BuyPrice = this._buyAccount.TradeCoin.CoinPrice.AskPrice,
-                SellPrice = this._sellAccount.TradeCoin.CoinPrice.BidPrice
+                BuyPrice = this.BuyAccount.TradeCoin.CoinPrice.AskPrice,
+                SellPrice = this.SellAccount.TradeCoin.CoinPrice.BidPrice
             };
         }
     }

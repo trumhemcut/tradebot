@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace tradebot.core
         private int _timeLeftToSendEmail;
         public ITradeAccount BuyAccount { get { return this._options.BuyAccount; } }
         public ITradeAccount SellAccount { get { return this._options.SellAccount; } }
+        public List<ITradeAccount> TradeAccounts { get { return this._options.TradeAccounts; } }
         public string MailApiKey { get { return this._options.MailApiKey; } }
         public decimal BitcoinTradingAmount { get { return this._options.BitcoinTradingAmount; } }
         public int ResumeAfterExpectedDelta { get { return this._options.ResumeAfterExpectedDelta; } }
@@ -26,7 +28,7 @@ namespace tradebot.core
         public bool TestMode { get { return this._options.InTestMode; } }
         private readonly TradeBotOptions _options;
         private readonly ILogger _logger;
-
+        
         public TradeBot() { }
 
         public TradeBot(TradeBotOptions options, ILogger logger)
@@ -44,28 +46,23 @@ namespace tradebot.core
             {
                 try
                 {
-                    await UpdateCoinPrices();
-                    if (!await UpdateBalances())
-                        continue;
-
                     TradeInfo tradeInfo = null;
-
-                    // TODO: Currently in FIXED Mode, trademode should be configured
+                    var tradeInfoAnalyzer = new TradeInfoAnalyzer(this._options);
+                    await tradeInfoAnalyzer.UpdateCoinPrices();
+                    if (!await tradeInfoAnalyzer.UpdateBalances())
+                        continue;
 
                     switch (this.TradeMode)
                     {
                         case TradeMode.FinegrainedTrade:
-                            tradeInfo = new TradeInfoAnalyzer(this._options)
-                                            .AnalyzeDeltaFinegrainedMode();
+                            tradeInfo = tradeInfoAnalyzer.AnalyzeDeltaFinegrainedMode();
                             break;
                         case TradeMode.FixedMode:
-                            tradeInfo = new TradeInfoAnalyzer(this._options)
-                                            .AnalyzeDataFixedMode(this.FixedQuantity);
+                            tradeInfo = tradeInfoAnalyzer.AnalyzeDataFixedMode(this.FixedQuantity);
                             break;
                         case TradeMode.NormalTrade:
                         default:
-                            tradeInfo = new TradeInfoAnalyzer(this._options)
-                                            .AnalyzeDeltaNormalMode();
+                            tradeInfo = tradeInfoAnalyzer.AnalyzeDeltaNormalMode();
                             break;
                     }
 
@@ -237,25 +234,6 @@ namespace tradebot.core
                     this.MailApiKey);
                 this._timeLeftToSendEmail = 300;
             }
-        }
-
-        public async Task UpdateCoinPrices() =>
-            await Task.WhenAll(this.BuyAccount.UpdatePrices(), this.SellAccount.UpdatePrices());
-
-        public async Task<bool> UpdateBalances()
-        {
-            var updateSellBalances = this.SellAccount.UpdateBalances();
-            var updateBuyBalances = this.BuyAccount.UpdateBalances();
-
-            await Task.WhenAll(updateBuyBalances, updateSellBalances);
-
-            if (!updateBuyBalances.Result.Success)
-                return false;
-
-            if (!updateSellBalances.Result.Success)
-                return false;
-
-            return true;
         }
     }
 }
