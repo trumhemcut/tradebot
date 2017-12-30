@@ -1,7 +1,16 @@
 # tradebot
 Bot trading coins
 
+## Docker Build
+```
+docker build -t trumhemcut/tradebot .
+```
 ## Commands
+**Get help**
+```
+docker run trumhemcut/tradebot --help
+```
+
 **Buy at Binance, Sell at Bittrex**
 ```
 docker run -d --name xvgbotr trumhemcut/tradebot \
@@ -24,13 +33,8 @@ docker run -d --name xvgbot trumhemcut/tradebot \
   -w 0.00000001
 ```
 
-## Get helps
-```
-docker run --it testbot trumhemcut/tradebot -h
-```
 
-## Configure for production environment
-Please email me at trumhemcut@hotmail.com, I'll charge 80ADA/h or 2000ADA (Cardano) for one bot configuration.
+## Buy me a coffee
 
 My ADA wallet address:
 ```
@@ -38,8 +42,5 @@ DdzFFzCqrhseGFdRvddihfs61xgvqgBEgyExYQH7h3De18hEfFW8nhpgRC4zCiuRApYgNBrk1LiCp4EG
 ```
 
 **Be carefull in release mode!!!**
-
-* Ăn cơm với muối mà nói chuyện trên núi
-* Dân chơi mà, bi nhiêu bi, còn nhiêu ghi (nợ)
 
 All rights reserved by @trumhemcut.
