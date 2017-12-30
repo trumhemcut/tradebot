@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using tradebot.core;
 
@@ -11,7 +12,6 @@ namespace tradebot.console
 {
     class Program
     {
-        public static IConfigurationRoot Configuration { get; set; }
         static void Main(string[] args)
         {
             // Workaround Ctrl+C on Docker
@@ -33,10 +33,12 @@ namespace tradebot.console
                             })
                             .ConfigureServices(services =>
                             {
-                                services.AddSingleton<ILoggerFactory>(
-                                    new LoggerFactory()
-                                        .AddConsole()
-                                        .AddDebug());
+                                services.AddLogging((loggerFactory) =>
+                                                     loggerFactory
+                                                        .AddConsole()
+                                                        .AddDebug()
+                                                        .SetMinimumLevel(LogLevel.Debug));
+                                services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
                             })
                             .UseCommandLine(args)
                             .AddDockerSecret("Email.ApiKey", "Email:ApiKey")

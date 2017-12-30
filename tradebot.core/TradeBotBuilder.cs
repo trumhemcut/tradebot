@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using tradebot.core.helper;
 
 namespace tradebot.core
 {
@@ -24,12 +25,14 @@ namespace tradebot.core
         public ITradeBot Build()
         {
             this._configureServicesDelegate(this._serviceCollection);
+            this._serviceCollection.AddSingleton<IConfiguration>(this._configuration);
             this._serviceProvider = this._serviceCollection.BuildServiceProvider();
 
             this._options = new TradeBotOptions(this._configuration);
 
             // Configure logging
-            var logger = this._serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bot");
+            var logger = this._serviceProvider.GetRequiredService<ILogger<TradeBot>>();
+            var loggerFactory = this._serviceProvider.GetRequiredService<ILoggerFactory>();
             this._logger = logger;
 
             var tradeFlowAnalyzer = this.AnalyzeTradeFlow();
@@ -37,7 +40,9 @@ namespace tradebot.core
             this._options.BuyAccount = tradeFlowAnalyzer.BuyAccount;
             this._options.SellAccount = tradeFlowAnalyzer.SellAccount;
 
-            var tradeBot = new TradeBot(_options, logger);
+            var emailHelper = this._serviceProvider.GetRequiredService<IEmailHelper>();
+
+            var tradeBot = new TradeBot(this._options, logger, loggerFactory, emailHelper);
 
             return tradeBot;
         }
@@ -81,7 +86,6 @@ namespace tradebot.core
                     _logger.LogDebug($"Found {secret.Key} in Docker Secrets");
                     this.UseSetting(secret.Value, File.ReadAllText($"{secretsPath}{secret.Key}"));
                 }
-
             }
 
             return this;
@@ -111,7 +115,7 @@ namespace tradebot.core
                                 bittrexBitcoinTransferFee,
                                 _configuration["BittrexAccount:API_KEY"],
                                 _configuration["BittrexAccount:API_SECRET"],
-                                _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bittrex"));
+                                _serviceProvider.GetRequiredService<ILogger<BittrexAccount>>());
 
             var binanceTradingFee = Decimal.Parse(_configuration["BinanceAccount:TradingFee"]);
             var binanceBitcoinTransferFee = Decimal.Parse(_configuration["BinanceAccount:BitcoinTransferFee"]);
@@ -121,7 +125,7 @@ namespace tradebot.core
                                 binanceBitcoinTransferFee,
                                 _configuration["BinanceAccount:API_KEY"],
                                 _configuration["BinanceAccount:API_SECRET"],
-                                _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Binance"));
+                                _serviceProvider.GetRequiredService<ILogger<BinanceAccount>>());
 
             var tradeAccounts = new List<ITradeAccount>()
                                     .AddTradeAccount(binanceAccount)

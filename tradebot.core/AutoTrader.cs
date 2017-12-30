@@ -6,10 +6,9 @@ namespace tradebot.core
 {
     public class AutoTrader
     {
-        public ITradeAccount BuyAccount { get; set; }
-        public ITradeAccount SellAccount { get; set; }
-        public TradeInfo TradeInfo { get; set; }
-        public TradeInfo FinegrainedTradeInfo { get; set; }
+        private readonly ITradeAccount _buyAccount;
+        private readonly ITradeAccount _sellAccount;
+        private readonly TradeInfo _tradeInfo;
         public decimal PlusPointToWin { get; set; }
         public bool TestMode { get; set; }
         private ILogger _logger;
@@ -19,17 +18,17 @@ namespace tradebot.core
             TradeInfo tradeInfo,
             decimal plusPointToWin,
             bool testMode,
-            ILogger logger)
+            ILogger<AutoTrader> logger)
         {
-            this.BuyAccount = buyAccount;
-            this.SellAccount = sellAccount;
-            this.TradeInfo = tradeInfo;
+            this._buyAccount = buyAccount;
+            this._sellAccount = sellAccount;
+            this._tradeInfo = tradeInfo;
             this.PlusPointToWin = plusPointToWin;
             this.TestMode = testMode;
             this._logger = logger;
         }
 
-        public async Task<bool> Trade()
+        public async Task<TradeBotApiResult> Trade()
         {
 #if DEBUG
             this.TestMode = true;
@@ -38,49 +37,36 @@ namespace tradebot.core
             {
                 // this.PlusPointToWin = -0.00000900M;
                 this.PlusPointToWin = -1.00000900M;
-                this.TradeInfo.CoinQuantityAtBuy = 30;
-                this.TradeInfo.CoinQuantityAtSell = 30;
+                this._tradeInfo.CoinQuantityAtBuy = 30;
+                this._tradeInfo.CoinQuantityAtSell = 30;
             }
 
-            var buyPrice = TradeInfo.BuyPrice + this.PlusPointToWin;
-            var sellPrice = TradeInfo.SellPrice - this.PlusPointToWin;
+            var buyPrice = this._tradeInfo.BuyPrice + this.PlusPointToWin;
+            var sellPrice = this._tradeInfo.SellPrice - this.PlusPointToWin;
 
             TradeBotApiResult buyResult = null, sellResult = null;
 
             // Since we experienced many times that Binance throws issues usually.
             // We will stop this if Binance is not successful
 
-            if (this.BuyAccount is BinanceAccount)
+            if (this._buyAccount is BinanceAccount)
             {
-                buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                buyResult = await this._buyAccount.Buy(this._tradeInfo.CoinQuantityAtBuy, buyPrice);
                 if (!buyResult.Success)
-                    return false;
+                    return buyResult;
 
-                sellResult = await this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+                sellResult = await this._sellAccount.Sell(this._tradeInfo.CoinQuantityAtSell, sellPrice);
+                return sellResult;
             }
             else
             {
-                sellResult = await this.SellAccount.Sell(TradeInfo.CoinQuantityAtSell, sellPrice);
+                sellResult = await this._sellAccount.Sell(this._tradeInfo.CoinQuantityAtSell, sellPrice);
                 if (!sellResult.Success)
-                    return false;
-                
-                buyResult = await this.BuyAccount.Buy(TradeInfo.CoinQuantityAtBuy, buyPrice);
+                    return sellResult;
+
+                buyResult = await this._buyAccount.Buy(this._tradeInfo.CoinQuantityAtBuy, buyPrice);
+                return buyResult;
             }
-
-            return buyResult.Success && sellResult.Success;
-        }
-
-        public void PrintDashboard()
-        {
-            Console.WriteLine(@"+--------------------------------------+
-                                | SELL              | BUY              |
-                                |-------------------|------------------|
-                                | 0.00002608 BTC    | 0.00002508 BTC   |
-                                | 18,000 ADA        | 17,000 ADA       |
-                                |-------------------|------------------|
-                                | Profit:                              |
-                                +--------------------------------------+
-            ");
         }
     }
 }

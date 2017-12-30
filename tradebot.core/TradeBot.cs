@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using tradebot.core.helper;
 
 namespace tradebot.core
 {
@@ -14,12 +15,8 @@ namespace tradebot.core
         private int _timeLeftToSendEmail;
         public ITradeAccount BuyAccount { get { return this._options.BuyAccount; } }
         public ITradeAccount SellAccount { get { return this._options.SellAccount; } }
-        public List<ITradeAccount> TradeAccounts { get { return this._options.TradeAccounts; } }
-        public string MailApiKey { get { return this._options.MailApiKey; } }
-        public decimal BitcoinTradingAmount { get { return this._options.BitcoinTradingAmount; } }
         public int ResumeAfterExpectedDelta { get { return this._options.ResumeAfterExpectedDelta; } }
         public decimal ExpectedDelta { get { return this._options.ExpectedDelta; } }
-        public string EmailTo { get { return this._options.EmailTo; } }
         public bool IsAutoTrading { get { return this._options.IsAutoTrading; } }
         public string Coin { get { return this._options.Coin; } }
         public decimal PlusPointToWin { get { return this._options.PlusPointToWin; } }
@@ -28,20 +25,27 @@ namespace tradebot.core
         public bool TestMode { get { return this._options.InTestMode; } }
         private readonly TradeBotOptions _options;
         private readonly ILogger _logger;
-        
-        public TradeBot() { }
+        private readonly IEmailHelper _emailHelper;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public TradeBot(TradeBotOptions options, ILogger logger)
+        public TradeBot(
+            TradeBotOptions options,
+            ILogger<TradeBot> logger,
+            ILoggerFactory loggerFactory,
+            IEmailHelper emailHelper)
         {
             this._timeLeftToSendEmail = 0;
             this._options = options;
             this._logger = logger;
+            this._emailHelper = emailHelper;
 
             this._logger.LogInformation("Bot is created successfully");
         }
+
         public async Task Execute()
         {
             int errorCount = 0;
+            int transNumber = 0;
             while (true)
             {
                 try
@@ -77,70 +81,8 @@ namespace tradebot.core
                     // Check to send notification
                     if (tradeInfo.DeltaBidAsk >= this.ExpectedDelta)
                     {
-                        if (IsAutoTrading)
-                        {
-                            _logger.LogInformation("AutoTrader: ON");
-                            if (!tradeInfo.Tradable)
-                            {
-                                _logger.LogWarning($"Not tradable: {tradeInfo.Message}");
-                                await EmailHelper.SendEmail(
-                                    $"Not tradable: {tradeInfo.Message}",
-                                    this.EmailTo,
-                                    $"Not tradable: {tradeInfo.Message}",
-                                    this.MailApiKey);
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    var autoTrader = new AutoTrader(
-                                        sellAccount: SellAccount,
-                                        buyAccount: BuyAccount,
-                                        tradeInfo: tradeInfo,
-                                        plusPointToWin: this.PlusPointToWin,
-                                        testMode: this.TestMode,
-                                        logger: _logger
-                                    );
-                                    if (await autoTrader.Trade())
-                                    {
-                                        await WaitUntilOrdersAreMatched(tradeInfo);
+                        if (IsAutoTrading) await DoAutoTrading(transNumber, tradeInfo);
 
-                                        await EmailHelper.SendEmail(
-                                            $"Trade successfully, please check!!!",
-                                            this.EmailTo,
-                                            "Trade successfully :)",
-                                            this.MailApiKey);
-                                    }
-                                    else
-                                    {
-                                        await EmailHelper.SendEmail(
-                                            $"Trade error, please check!!!",
-                                            this.EmailTo,
-                                            "Trade error :(",
-                                            this.MailApiKey);
-
-                                        _logger.LogCritical("Trading Error occurred! Exit for now...");
-                                        Environment.Exit(1);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    var message = ex.Message;
-                                    if (ex.InnerException != null)
-                                        message = message + "\n" + ex.InnerException.Message;
-
-                                    await EmailHelper.SendEmail(
-                                        $"Trade Error! Please check!!!",
-                                        this.EmailTo,
-                                        message,
-                                        this.MailApiKey);
-                                }
-                            }
-
-                            //TODO: Temporarily run only once
-                            //Console.WriteLine("Exit after trading successfully");
-                            //return;
-                        }
                         _logger.LogInformation("Time to buy ...");
                         _logger.LogInformation($"Send email in {_timeLeftToSendEmail}s...\n");
                         await SendMailIfTimePassed(tradeInfo, content);
@@ -152,7 +94,7 @@ namespace tradebot.core
 
                     errorCount = 0;
                     this._timeLeftToSendEmail -= 2;
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
                 catch (Exception ex)
                 {
@@ -163,63 +105,97 @@ namespace tradebot.core
                     errorCount++;
                     if (errorCount > 100)
                     {
-                        await EmailHelper.SendEmail(
-                            $"[TradeBot] Program Error, Please double check",
-                            this.EmailTo,
-                            ex.Message,
-                            this.MailApiKey);
-                        Thread.Sleep(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
+                        await this._emailHelper.SendEmail($"[TradeBot] Program Error, Please double check", ex.Message);
+                        await Task.Delay(TimeSpan.FromMinutes(this.ResumeAfterExpectedDelta));
                     }
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
+                }
+            }
+        }
+        public async Task DoAutoTrading(int transNumber, TradeInfo tradeInfo)
+        {
+            _logger.LogInformation("AutoTrader: ON");
+            if (!tradeInfo.Tradable)
+            {
+                _logger.LogWarning($"{this.Coin} - Not tradable: {tradeInfo.Message}");
+                await this._emailHelper.SendEmail($"Not tradable: {tradeInfo.Message}", $"Not tradable: {tradeInfo.Message}");
+            }
+            else
+            {
+                try
+                {
+                    transNumber++;
+                    var trans = $"{this.Coin}-{DateTime.Now.ToString("ddMMM")}-{transNumber}";
+                    var autoTrader = new AutoTrader(
+                        sellAccount: SellAccount,
+                        buyAccount: BuyAccount,
+                        tradeInfo: tradeInfo,
+                        plusPointToWin: this.PlusPointToWin,
+                        testMode: this.TestMode,
+                        logger: this._loggerFactory.CreateLogger<AutoTrader>()
+                    );
+                    var tradeResult = await autoTrader.Trade();
+                    if (tradeResult.Success)
+                    {
+                        await WaitUntilOrdersAreMatched(tradeInfo, trans);
+                    }
+                    else
+                    {
+                        await this._emailHelper.SendEmail(
+                            $"{transNumber} - Trade error, please check!!!",
+                            $"{tradeResult.ErrorMessage}");
+
+                        _logger.LogCritical("Trading Error occurred! Exit for now...");
+                        Environment.Exit(1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var message = ex.Message;
+                    if (ex.InnerException != null)
+                        message = message + "\n" + ex.InnerException.Message;
+
+                    await this._emailHelper.SendEmail($"Trade Error! Please check!!!", message);
                 }
             }
         }
 
-        public async Task WaitUntilOrdersAreMatched(TradeInfo tradeInfo)
+        public async Task WaitUntilOrdersAreMatched(TradeInfo tradeInfo, string transNumber)
         {
             var sellWasMatched = false;
             var buyWasMatched = false;
 
-            _logger.LogInformation("MATCH CHECKING");
-            await EmailHelper.SendEmail(
-                $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Checking matching...",
-                this.EmailTo,
-                $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
-                this.MailApiKey);
+            _logger.LogInformation($"{transNumber} - MATCH CHECKING");
 
             while (true)
             {
                 if (await this.SellAccount.IsOrderMatched() && !sellWasMatched)
                 {
                     Console.WriteLine("");
-                    _logger.LogInformation("Sell order was matched.");
+                    _logger.LogInformation($"[{transNumber}] - Sell order was matched.");
                     sellWasMatched = true;
-                    await EmailHelper.SendEmail(
+                    await this._emailHelper.SendEmail(
                         $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Sell order was matched",
-                        this.EmailTo,
-                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
-                        this.MailApiKey);
+                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}");
                 }
 
                 if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
                 {
                     Console.WriteLine("");
-                    _logger.LogInformation("Buy order was matched.");
+                    _logger.LogInformation($"[{transNumber}] - Buy order was matched.");
                     buyWasMatched = true;
-                    await EmailHelper.SendEmail(
-                        $"[{DateTime.Now.ToString("dd/MM/yy hh:mm:ss")}] Buy order was matched",
-                        this.EmailTo,
-                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}",
-                        this.MailApiKey);
+                    await this._emailHelper.SendEmail(
+                        $"[{transNumber}] - Buy order was matched",
+                        $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}");
                 }
                 if (sellWasMatched && buyWasMatched)
                 {
-                    _logger.LogInformation("SUCCESSFUL! Sell & buy were matched.");
+                    _logger.LogInformation($"[{transNumber}] - SUCCESSFUL! Sell & buy were matched.");
                     break;
                 }
                 Console.Write(".");
 
-                Thread.Sleep(500);
+                await Task.Delay(300);
             }
         }
 
@@ -227,11 +203,8 @@ namespace tradebot.core
         {
             if (this._timeLeftToSendEmail <= 0)
             {
-                await EmailHelper.SendEmail(
-                    $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.CoinProfit}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}",
-                    this.EmailTo,
-                    content,
-                    this.MailApiKey);
+                var title = $"[{Coin}], Delta = {tradeInfo.DeltaBidBid}, Profit = {tradeInfo.CoinProfit}, Buy Qt.={tradeInfo.CoinQuantityAtBuy}";
+                await this._emailHelper.SendEmail(title, content);
                 this._timeLeftToSendEmail = 300;
             }
         }

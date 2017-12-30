@@ -26,7 +26,7 @@ namespace tradebot.core
                               decimal bitcoinTransferFee,
                               string apiKey,
                               string apiSecret,
-                              ILogger logger)
+                              ILogger<BittrexAccount> logger)
         {
             BittrexDefaults.SetDefaultApiCredentials(apiKey, apiSecret);
 
