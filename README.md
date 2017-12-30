@@ -7,7 +7,9 @@ docker build -t trumhemcut/tradebot .
 ```
 ## Commands
 **Get help**
-```docker run trumhemcut/tradebot --help```
+```
+docker run trumhemcut/tradebot --help
+```
 
 **Buy at Binance, Sell at Bittrex**
 ```
