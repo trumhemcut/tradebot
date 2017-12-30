@@ -1,6 +1,14 @@
 # tradebot
 Bot trading coins
 
+## Docker Build
+```
+docker build -t trumhemcut/tradebot .
+```
+
+## Get help
+```docker run trumhemcut/tradebot --help```
+
 ## Commands
 **Buy at Binance, Sell at Bittrex**
 ```
