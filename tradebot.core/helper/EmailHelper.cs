@@ -17,9 +17,9 @@ namespace tradebot.core.helper
             this._configuration = configuration;
         }
         public async Task SendEmail(string subject, string content){
-            var fromAddress = this._configuration["Email:From"];
-            var fromName = this._configuration["Email:From"];
-            var toAddress = this._configuration["Email:To"];
+            var fromAddress = this._configuration["Email:EmailFrom"];
+            var fromName = this._configuration["Email:FromName"];
+            var toAddress = this._configuration["Email:EmailTo"];
             var toName = this._configuration["Email:ToName"];
             var apiKey = this._configuration["Email:ApiKey"];
             

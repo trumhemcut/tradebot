@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using tradebot.core;
+using tradebot.core.helper;
 
 namespace tradebot.console
 {
@@ -39,6 +40,7 @@ namespace tradebot.console
                                                         .AddDebug()
                                                         .SetMinimumLevel(LogLevel.Debug));
                                 services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+                                services.AddSingleton<IEmailHelper, EmailHelper>();
                             })
                             .UseCommandLine(args)
                             .AddDockerSecret("Email.ApiKey", "Email:ApiKey")
