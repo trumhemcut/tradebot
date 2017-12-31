@@ -83,11 +83,12 @@ namespace tradebot.core
                     // Check to send notification
                     if (tradeInfo.DeltaBidAsk >= this.ExpectedDelta)
                     {
-                        if (IsAutoTrading) await DoAutoTrading(++transNumber, tradeInfo);
-
-                        // _logger.LogInformation("Time to buy ...");
-                        // _logger.LogInformation($"Send email in {_timeLeftToSendEmail}s...\n");
-                        // await SendMailIfTimePassed(tradeInfo, content);
+                        if (IsAutoTrading && tradeInfo.Tradable) await DoAutoTrading(++transNumber, tradeInfo);
+                        if (!tradeInfo.Tradable)
+                        {
+                            var message = $"{this.Coin} - {this._options.TradeFlow.ToString()} Not tradable: {tradeInfo.Message}";
+                            _logger.LogWarning(message);
+                        }
                     }
                     else
                     {
@@ -117,49 +118,41 @@ namespace tradebot.core
         public async Task DoAutoTrading(int transNumber, TradeInfo tradeInfo)
         {
             _logger.LogInformation("AutoTrader: ON");
-            if (!tradeInfo.Tradable)
+
+            try
             {
-                var message = $"{this.Coin} - {this._options.TradeFlow.ToString()} Not tradable: {tradeInfo.Message}";
-                _logger.LogWarning(message);
-                // await this._emailHelper.SendEmail(message, $"Not tradable: {tradeInfo.Message}");
+                var trans = $"{this.Coin}-{DateTime.Now.ToString("ddMMM")}-{transNumber}";
+                var autoTrader = new AutoTrader(
+                    sellAccount: SellAccount,
+                    buyAccount: BuyAccount,
+                    tradeInfo: tradeInfo,
+                    plusPointToWin: this.PlusPointToWin,
+                    testMode: this.TestMode,
+                    trans: trans,
+                    logger: this._loggerFactory.CreateLogger<AutoTrader>()
+                );
+                var tradeResult = await autoTrader.Trade();
+                if (tradeResult.Success)
+                {
+                    await WaitUntilOrdersAreMatched(tradeInfo, trans);
+                }
+                else
+                {
+                    await this._emailHelper.SendEmail(
+                        $"{transNumber} - Trade error, please check!!!",
+                        $"{tradeResult.ErrorMessage}");
+
+                    _logger.LogCritical("Trading Error occurred! Exit for now...");
+                    Environment.Exit(1);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    var trans = $"{this.Coin}-{DateTime.Now.ToString("ddMMM")}-{transNumber}";
-                    var autoTrader = new AutoTrader(
-                        sellAccount: SellAccount,
-                        buyAccount: BuyAccount,
-                        tradeInfo: tradeInfo,
-                        plusPointToWin: this.PlusPointToWin,
-                        testMode: this.TestMode,
-                        trans: trans,
-                        logger: this._loggerFactory.CreateLogger<AutoTrader>()
-                    );
-                    var tradeResult = await autoTrader.Trade();
-                    if (tradeResult.Success)
-                    {
-                        await WaitUntilOrdersAreMatched(tradeInfo, trans);
-                    }
-                    else
-                    {
-                        await this._emailHelper.SendEmail(
-                            $"{transNumber} - Trade error, please check!!!",
-                            $"{tradeResult.ErrorMessage}");
+                var message = ex.Message;
+                if (ex.InnerException != null)
+                    message = message + "\n" + ex.InnerException.Message;
 
-                        _logger.LogCritical("Trading Error occurred! Exit for now...");
-                        Environment.Exit(1);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var message = ex.Message;
-                    if (ex.InnerException != null)
-                        message = message + "\n" + ex.InnerException.Message;
-
-                    await this._emailHelper.SendEmail($"[{this.Coin}] - [{this._options.TradeFlow.ToString()}] Trade Error! Please check!!!", message);
-                }
+                await this._emailHelper.SendEmail($"[{this.Coin}] - [{this._options.TradeFlow.ToString()}] Trade Error! Please check!!!", message);
             }
         }
 
