@@ -20,7 +20,7 @@ namespace tradebot.core
         public decimal CurrentBidPrice { get { return this.TradeCoin.CoinPrice.BidPrice; } }
         public decimal CurrentBidQty { get { return this.TradeCoin.CoinPrice.BidQuantity; } }
         public decimal CurrentAskQty { get { return this.TradeCoin.CoinPrice.AskQuantity; } }
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public BinanceAccount(string coin,
                               decimal tradingFee,
@@ -83,7 +83,7 @@ namespace tradebot.core
             }
         }
 
-        public async Task<TradeBotApiResult> Buy(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Buy(string trans, decimal quantity, decimal price)
         {
             using (var binanceClient = new BinanceClient())
             {
@@ -96,8 +96,9 @@ namespace tradebot.core
                         price
                 );
 
-                if (result.Success){
-                    _logger.LogInformation($"Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
+                if (result.Success)
+                {
+                    _logger.LogInformation($"[{trans}] - Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Data.OrderId;
                 }
                 else
@@ -111,7 +112,7 @@ namespace tradebot.core
             }
         }
 
-        public async Task<TradeBotApiResult> Sell(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Sell(string trans, decimal quantity, decimal price)
         {
             using (var binanceClient = new BinanceClient())
             {
@@ -127,7 +128,7 @@ namespace tradebot.core
                 if (result.Success)
                 {
                     this._currentOrderId = result.Data.OrderId;
-                    _logger.LogInformation($"Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
+                    _logger.LogInformation($"[{trans}] - Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                 }
                 else
                     _logger.LogError(result.Error.Message);
@@ -145,7 +146,8 @@ namespace tradebot.core
             using (var binanceClient = new BinanceClient())
             {
                 var result = await binanceClient.QueryOrderAsync($"{this.TradeCoin.Token}BTC", this._currentOrderId);
-                return result.Data.Status == OrderStatus.Filled;
+                return result.Data.Status == OrderStatus.Filled ||
+                       result.Data.Status == OrderStatus.Canceled;
             }
         }
     }

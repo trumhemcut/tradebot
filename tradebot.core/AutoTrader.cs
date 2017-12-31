@@ -9,8 +9,9 @@ namespace tradebot.core
         private readonly ITradeAccount _buyAccount;
         private readonly ITradeAccount _sellAccount;
         private readonly TradeInfo _tradeInfo;
-        public decimal PlusPointToWin { get; set; }
-        public bool TestMode { get; set; }
+        public decimal _plusPointToWin;
+        public bool _testMode;
+        private readonly string _trans;
         private ILogger _logger;
         public AutoTrader(
             ITradeAccount buyAccount,
@@ -18,31 +19,31 @@ namespace tradebot.core
             TradeInfo tradeInfo,
             decimal plusPointToWin,
             bool testMode,
+            string trans,
             ILogger<AutoTrader> logger)
         {
             this._buyAccount = buyAccount;
             this._sellAccount = sellAccount;
             this._tradeInfo = tradeInfo;
-            this.PlusPointToWin = plusPointToWin;
-            this.TestMode = testMode;
+            this._plusPointToWin = plusPointToWin;
+            this._testMode = testMode;
+            this._trans = trans;
             this._logger = logger;
         }
 
         public async Task<TradeBotApiResult> Trade()
         {
 #if DEBUG
-            this.TestMode = true;
+            this._testMode = true;
 #endif
-            if (this.TestMode)
+            if (this._testMode)
             {
-                // this.PlusPointToWin = -0.00000900M;
-                this.PlusPointToWin = -1.00000900M;
-                this._tradeInfo.CoinQuantityAtBuy = 30;
-                this._tradeInfo.CoinQuantityAtSell = 30;
+                this._plusPointToWin = -0.00000900M;
+                this._tradeInfo.CoinQuantityAtBuy = 100;
+                this._tradeInfo.CoinQuantityAtSell = 100;
             }
-
-            var buyPrice = this._tradeInfo.BuyPrice + this.PlusPointToWin;
-            var sellPrice = this._tradeInfo.SellPrice - this.PlusPointToWin;
+            this._tradeInfo.BuyPrice = this._tradeInfo.BuyPrice + this._plusPointToWin;
+            this._tradeInfo.SellPrice = this._tradeInfo.SellPrice - this._plusPointToWin;
 
             TradeBotApiResult buyResult = null, sellResult = null;
 
@@ -51,20 +52,32 @@ namespace tradebot.core
 
             if (this._buyAccount is BinanceAccount)
             {
-                buyResult = await this._buyAccount.Buy(this._tradeInfo.CoinQuantityAtBuy, buyPrice);
+                buyResult = await this._buyAccount.Buy(
+                                        this._trans, 
+                                        this._tradeInfo.CoinQuantityAtBuy, 
+                                        this._tradeInfo.BuyPrice);
                 if (!buyResult.Success)
                     return buyResult;
 
-                sellResult = await this._sellAccount.Sell(this._tradeInfo.CoinQuantityAtSell, sellPrice);
+                sellResult = await this._sellAccount.Sell(
+                                        this._trans, 
+                                        this._tradeInfo.CoinQuantityAtSell, 
+                                        this._tradeInfo.SellPrice);
                 return sellResult;
             }
             else
             {
-                sellResult = await this._sellAccount.Sell(this._tradeInfo.CoinQuantityAtSell, sellPrice);
+                sellResult = await this._sellAccount.Sell(
+                                        this._trans, 
+                                        this._tradeInfo.CoinQuantityAtSell, 
+                                        this._tradeInfo.SellPrice);
                 if (!sellResult.Success)
                     return sellResult;
 
-                buyResult = await this._buyAccount.Buy(this._tradeInfo.CoinQuantityAtBuy, buyPrice);
+                buyResult = await this._buyAccount.Buy(
+                                        this._trans, 
+                                        this._tradeInfo.CoinQuantityAtBuy, 
+                                        this._tradeInfo.BuyPrice);
                 return buyResult;
             }
         }

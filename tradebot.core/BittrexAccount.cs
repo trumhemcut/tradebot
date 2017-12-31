@@ -20,7 +20,7 @@ namespace tradebot.core
         public decimal CurrentBidPrice { get { return this.TradeCoin.CoinPrice.BidPrice; } }
         public decimal CurrentBidQty { get { return this.TradeCoin.CoinPrice.BidQuantity; } }
         public decimal CurrentAskQty { get { return this.TradeCoin.CoinPrice.AskQuantity; } }
-        private ILogger _logger;
+        private readonly ILogger _logger;
         public BittrexAccount(string coin,
                               decimal tradingFee,
                               decimal bitcoinTransferFee,
@@ -77,7 +77,7 @@ namespace tradebot.core
                 return new TradeBotApiResult { Success = false, ErrorMessage = coinBalanceResult.Error.ErrorMessage };
             }
         }
-        public async Task<TradeBotApiResult> Buy(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Buy(string trans, decimal quantity, decimal price)
         {
             using (var bittrexClient = new BittrexClient())
             {
@@ -89,7 +89,7 @@ namespace tradebot.core
 
                 if (result.Success)
                 {
-                    _logger.LogInformation($"Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
+                    _logger.LogInformation($"[{trans}] - Buy order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Result.Uuid;
                 }
                 else
@@ -103,7 +103,7 @@ namespace tradebot.core
             }
         }
 
-        public async Task<TradeBotApiResult> Sell(decimal quantity, decimal price)
+        public async Task<TradeBotApiResult> Sell(string trans, decimal quantity, decimal price)
         {
             using (var bittrexClient = new BittrexClient())
             {
@@ -114,7 +114,7 @@ namespace tradebot.core
                     price);
 
                 if (result.Success){
-                    _logger.LogInformation($"Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
+                    _logger.LogInformation($"[{trans}] - Sell order {quantity} {this.TradeCoin.Token}, price {price} successfully.");
                     this._currentOrderId = result.Result.Uuid;
                 }
                 else
