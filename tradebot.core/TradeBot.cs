@@ -97,7 +97,7 @@ namespace tradebot.core
 
                     errorCount = 0;
                     this._timeLeftToSendEmail -= 2;
-                    await Task.Delay(2000);
+                    await Task.Delay(1300);
                 }
                 catch (Exception ex)
                 {
@@ -189,7 +189,7 @@ namespace tradebot.core
                 }
                 Console.Write(".");
 
-                await Task.Delay(300);
+                await Task.Delay(200);
             }
         }
 
