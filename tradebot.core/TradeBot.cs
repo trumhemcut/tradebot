@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -134,7 +135,7 @@ namespace tradebot.core
                 var tradeResult = await autoTrader.Trade();
                 if (tradeResult.Success)
                 {
-                    await WaitUntilOrdersAreMatched(tradeInfo, trans);
+                    BackgroundJob.Enqueue(() => WaitUntilOrdersAreMatched(tradeInfo, trans));
                 }
                 else
                 {
@@ -171,7 +172,10 @@ namespace tradebot.core
                     var message = $"[{transNumber}] - Sell order: {tradeInfo.CoinQuantityAtSell} {this.Coin} at price {Decimal.Round(tradeInfo.SellPrice, 8)} BTC was matched";
                     _logger.LogInformation(message);
                     sellWasMatched = true;
-                    await this._emailHelper.SendEmail(message, $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}");
+
+                    BackgroundJob.Enqueue(() => this._emailHelper.SendEmail(
+                                                    message,
+                                                    $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}"));
                 }
 
                 if (await this.BuyAccount.IsOrderMatched() && !buyWasMatched)
@@ -180,7 +184,10 @@ namespace tradebot.core
                     var message = $"[{transNumber}] - Buy order: {tradeInfo.CoinQuantityAtBuy} {this.Coin} at price {decimal.Round(tradeInfo.BuyPrice, 8)} BTC was matched";
                     _logger.LogInformation(message);
                     buyWasMatched = true;
-                    await this._emailHelper.SendEmail(message, $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}");
+
+                    BackgroundJob.Enqueue(() => this._emailHelper.SendEmail(
+                                                    message,
+                                                    $"SellPrice: {tradeInfo.SellPrice} - BuyPrice: {tradeInfo.BuyPrice}"));
                 }
                 if (sellWasMatched && buyWasMatched)
                 {

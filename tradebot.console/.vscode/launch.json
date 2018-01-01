@@ -12,6 +12,7 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.0/tradebot.dll",
             "args": [
+                "-t",
                 "-c", "XLM",
                 "-d", "0.00000000",
                 "-auto", 

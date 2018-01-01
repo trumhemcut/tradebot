@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Bittrex.Net\Bittrex.Net.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="hangfire.core" Version="1.6.17" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
