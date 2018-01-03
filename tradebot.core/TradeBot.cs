@@ -11,7 +11,7 @@ using tradebot.core.helper;
 
 namespace tradebot.core
 {
-    public class TradeBot : ITradeBot
+    public class TradeBot : ITradeBot, IDisposable
     {
         private int _timeLeftToSendEmail;
         public ITradeAccount BuyAccount { get { return this._options.BuyAccount; } }
@@ -28,18 +28,21 @@ namespace tradebot.core
         private readonly ILogger _logger;
         private readonly IEmailHelper _emailHelper;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly BackgroundJobServer _hangfireServer;
 
         public TradeBot(
             TradeBotOptions options,
             ILogger<TradeBot> logger,
             ILoggerFactory loggerFactory,
-            IEmailHelper emailHelper)
+            IEmailHelper emailHelper,
+            BackgroundJobServer hangfireServer)
         {
             this._timeLeftToSendEmail = 0;
             this._options = options;
             this._logger = logger;
             this._emailHelper = emailHelper;
             this._loggerFactory = loggerFactory;
+            this._hangfireServer = hangfireServer;
 
             this._logger.LogInformation("Bot is created successfully");
         }
@@ -208,6 +211,12 @@ namespace tradebot.core
                 await this._emailHelper.SendEmail(title, content);
                 this._timeLeftToSendEmail = 300;
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+            this._hangfireServer.SendStop();
+            this._hangfireServer.Dispose();
         }
     }
 }

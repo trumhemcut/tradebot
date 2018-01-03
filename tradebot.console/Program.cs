@@ -19,16 +19,9 @@ namespace tradebot.console
             // Workaround Ctrl+C on Docker
             Console.CancelKeyPress += (_, __) => { Environment.Exit(1); };
 
-            // Create Hangfire server
-            GlobalConfiguration.Configuration.UseSqlServerStorage("[ConnectionString]");
-            var hangfireServer = new BackgroundJobServer();
-
             // Create bot
             var tradebot = CreateBot(args);
             tradebot.Execute().Wait();
-
-            // Dispose Hangfire server
-            hangfireServer.Dispose();
         }
 
         public static ITradeBot CreateBot(string[] args)

@@ -21,6 +21,7 @@ namespace tradebot.core
         public decimal PlusPointToWin { get; set; }
         public bool InTestMode { get; set; }
         public decimal FixedQuantity { get; set; }
+        public string HangfireDbConnectionString { get; set; }
         public TradeBotOptions() { }
 
         public TradeBotOptions(IConfiguration configuration)
@@ -37,6 +38,7 @@ namespace tradebot.core
             this.PlusPointToWin = Decimal.Parse(configuration["PlusPointToWin"]);
             this.InTestMode = Boolean.Parse(configuration["TestMode"]);
             this.FixedQuantity = Decimal.Parse(configuration["FixQuantity"]);
+            this.HangfireDbConnectionString = configuration["Hangfire:ConnectionString"];
         }
     }
 }

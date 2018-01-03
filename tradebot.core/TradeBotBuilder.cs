@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Hangfire;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,6 @@ namespace tradebot.core
 
             this._options = new TradeBotOptions(this._configuration);
 
-            // Configure logging
             var logger = this._serviceProvider.GetRequiredService<ILogger<TradeBot>>();
             var loggerFactory = this._serviceProvider.GetRequiredService<ILoggerFactory>();
             this._logger = logger;
@@ -45,7 +45,15 @@ namespace tradebot.core
 
             var emailHelper = this._serviceProvider.GetRequiredService<IEmailHelper>();
 
-            var tradeBot = new TradeBot(this._options, logger, loggerFactory, emailHelper);
+            GlobalConfiguration.Configuration.UseSqlServerStorage("Hangfire:ConnectionString");
+            var hangfireServer = new BackgroundJobServer();
+
+            var tradeBot = new TradeBot(
+                            this._options, 
+                            logger, 
+                            loggerFactory, 
+                            emailHelper, 
+                            hangfireServer);
 
             return tradeBot;
         }
