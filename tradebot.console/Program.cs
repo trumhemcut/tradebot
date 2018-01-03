@@ -33,7 +33,7 @@ namespace tradebot.console
 
         public static ITradeBot CreateBot(string[] args)
         {
-            var tradeBot = new TradeBotBuilder()
+            var tradeBot = new TradeBotBuilder(args)
                             .Configure(config =>
                             {
                                 config.SetBasePath(Directory.GetCurrentDirectory())
@@ -51,7 +51,7 @@ namespace tradebot.console
                                 services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
                                 services.AddSingleton<IEmailHelper, EmailHelper>();
                             })
-                            .UseCommandLine(args)
+                            .UseCommandLine()
                             .AddDockerSecret("Email.ApiKey", "Email:ApiKey")
                             .AddDockerSecret("BinanceAccount.API_KEY", "BinanceAccount:API_KEY")
                             .AddDockerSecret("BinanceAccount.API_SECRET", "BinanceAccount.API_SECRET")

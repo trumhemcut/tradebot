@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,8 +19,10 @@ namespace tradebot.core
         private ILogger _logger;
         private IServiceProvider _serviceProvider;
         private Dictionary<string, string> _dockerSecrets = new Dictionary<string, string>();
-        public TradeBotBuilder()
+        private readonly string[] _args;
+        public TradeBotBuilder(string[] args)
         {
+            this._args = args;
         }
 
         public ITradeBot Build()
@@ -134,6 +137,42 @@ namespace tradebot.core
             var tradeFlowAnalyzer = new TradeFlowAnalyzer(this._options.TradeFlow, tradeAccounts);
 
             return tradeFlowAnalyzer;
+        }
+
+        public ITradeBotBuilder UseCommandLine()
+        {
+            var app = new CommandLineApplication();
+            app.HelpOption();
+
+            var options = new Dictionary<string, CommandOption>();
+            options.Add("Coin", app.Option("-c|--coin <COIN>", "Trade Coin, e.g. ADA | XVG", CommandOptionType.SingleValue));
+            options.Add("ExpectedDelta", app.Option("-d|--delta <DELTA>", "Expected Delta, e.g. 0.00000010", CommandOptionType.SingleValue));
+            options.Add("IsAutoTrading", app.Option("-auto|--isautotrading", "Auto Trader Mode On/Off", CommandOptionType.NoValue));
+            options.Add("TradeFlow", app.Option("-f|--tradeflow <BuyAtBinanceSellAtBittrex>", "BuyAtBinanceSellAtBittrex | SellAtBinanceBuyAtBittrex | AutoSwitch", CommandOptionType.SingleValue));
+            options.Add("FixQuantity", app.Option("-q|--quantity <QUANTITY>", "Quantity to trade", CommandOptionType.SingleValue));
+            options.Add("PlusPointToWin", app.Option("-w|--win <PlusPointToWin>", "Plus Point To Win e.g. 0.00000003", CommandOptionType.SingleValue));
+            options.Add("TestMode", app.Option("-t|--testmode", "Test Mode On/Off", CommandOptionType.NoValue));
+
+            app.OnExecute(() =>
+            {
+                foreach (var option in options)
+                {
+                    if (option.Value.HasValue())
+                    {
+                        if (option.Value.OptionType == CommandOptionType.NoValue)
+                            this.UseSetting(option.Key, "true");
+                        else
+                            this.UseSetting(option.Key, option.Value.Value());
+                    }
+                }
+            });
+
+            app.Execute(this._args);
+
+            if (app.OptionHelp.HasValue())
+                Environment.Exit(1);
+            
+            return this;
         }
     }
 }

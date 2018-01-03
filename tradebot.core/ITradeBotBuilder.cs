@@ -14,5 +14,6 @@ namespace tradebot.core
         ITradeBotBuilder AddDockerSecret(string secretKey, string configKey);
         ITradeBotBuilder SetSellAccount(ITradeAccount sellAccount);
         ITradeBotBuilder SetBuyAccount(ITradeAccount buyAccount);
+        ITradeBotBuilder UseCommandLine();
     }
 }
