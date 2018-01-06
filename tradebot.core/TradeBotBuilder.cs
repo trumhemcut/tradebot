@@ -45,7 +45,7 @@ namespace tradebot.core
 
             var emailHelper = this._serviceProvider.GetRequiredService<IEmailHelper>();
 
-            GlobalConfiguration.Configuration.UseSqlServerStorage("Hangfire:ConnectionString");
+            GlobalConfiguration.Configuration.UseSqlServerStorage(this._configuration["Hangfire:ConnectionString"]);
             var hangfireServer = new BackgroundJobServer();
 
             var tradeBot = new TradeBot(

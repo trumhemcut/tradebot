@@ -13,7 +13,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.0/tradebot.dll",
             "args": [
                 "-t",
-                "-c", "XLM",
+                "-c", "ADA",
                 "-d", "0.00000000",
                 "-auto", 
                 "-f", "AutoSwitch",
