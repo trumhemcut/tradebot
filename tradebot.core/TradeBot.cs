@@ -67,7 +67,7 @@ namespace tradebot.core
                             tradeInfo = tradeInfoAnalyzer.AnalyzeDeltaFinegrainedMode();
                             break;
                         case TradeMode.FixedMode:
-                            tradeInfo = tradeInfoAnalyzer.AnalyzeDataFixedMode(this.FixedQuantity);
+                            tradeInfo = tradeInfoAnalyzer.AnalyzeDataFixedMode(this.FixedQuantity, this.PlusPointToWin);
                             break;
                         case TradeMode.NormalTrade:
                         default:
@@ -130,7 +130,6 @@ namespace tradebot.core
                     sellAccount: SellAccount,
                     buyAccount: BuyAccount,
                     tradeInfo: tradeInfo,
-                    plusPointToWin: this.PlusPointToWin,
                     testMode: this.TestMode,
                     trans: trans,
                     logger: this._loggerFactory.CreateLogger<AutoTrader>()

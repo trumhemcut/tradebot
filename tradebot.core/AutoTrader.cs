@@ -9,7 +9,6 @@ namespace tradebot.core
         private readonly ITradeAccount _buyAccount;
         private readonly ITradeAccount _sellAccount;
         private readonly TradeInfo _tradeInfo;
-        public decimal _plusPointToWin;
         public bool _testMode;
         private readonly string _trans;
         private ILogger _logger;
@@ -17,7 +16,6 @@ namespace tradebot.core
             ITradeAccount buyAccount,
             ITradeAccount sellAccount,
             TradeInfo tradeInfo,
-            decimal plusPointToWin,
             bool testMode,
             string trans,
             ILogger<AutoTrader> logger)
@@ -25,7 +23,6 @@ namespace tradebot.core
             this._buyAccount = buyAccount;
             this._sellAccount = sellAccount;
             this._tradeInfo = tradeInfo;
-            this._plusPointToWin = plusPointToWin;
             this._testMode = testMode;
             this._trans = trans;
             this._logger = logger;
@@ -38,12 +35,11 @@ namespace tradebot.core
 #endif
             if (this._testMode)
             {
-                this._plusPointToWin = -0.00000900M;
+                this._tradeInfo.SellPrice += 0.00000900M;
+                this._tradeInfo.BuyPrice -= 0.00000900M;
                 this._tradeInfo.CoinQuantityAtBuy = 100;
                 this._tradeInfo.CoinQuantityAtSell = 100;
             }
-            this._tradeInfo.BuyPrice = this._tradeInfo.BuyPrice + this._plusPointToWin;
-            this._tradeInfo.SellPrice = this._tradeInfo.SellPrice - this._plusPointToWin;
 
             TradeBotApiResult buyResult = null, sellResult = null;
 
@@ -53,30 +49,30 @@ namespace tradebot.core
             if (this._buyAccount is BinanceAccount)
             {
                 buyResult = await this._buyAccount.Buy(
-                                        this._trans, 
-                                        this._tradeInfo.CoinQuantityAtBuy, 
+                                        this._trans,
+                                        this._tradeInfo.CoinQuantityAtBuy,
                                         this._tradeInfo.BuyPrice);
                 if (!buyResult.Success)
                     return buyResult;
 
                 sellResult = await this._sellAccount.Sell(
-                                        this._trans, 
-                                        this._tradeInfo.CoinQuantityAtSell, 
+                                        this._trans,
+                                        this._tradeInfo.CoinQuantityAtSell,
                                         this._tradeInfo.SellPrice);
                 return sellResult;
             }
             else
             {
                 sellResult = await this._sellAccount.Sell(
-                                        this._trans, 
-                                        this._tradeInfo.CoinQuantityAtSell, 
+                                        this._trans,
+                                        this._tradeInfo.CoinQuantityAtSell,
                                         this._tradeInfo.SellPrice);
                 if (!sellResult.Success)
                     return sellResult;
 
                 buyResult = await this._buyAccount.Buy(
-                                        this._trans, 
-                                        this._tradeInfo.CoinQuantityAtBuy, 
+                                        this._trans,
+                                        this._tradeInfo.CoinQuantityAtBuy,
                                         this._tradeInfo.BuyPrice);
                 return buyResult;
             }

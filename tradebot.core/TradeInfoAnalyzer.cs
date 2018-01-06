@@ -54,7 +54,7 @@ namespace tradebot.core
             return !updateBalances.Where(balanceResult => balanceResult.Result.Success == false)
                                   .Any();
         }
-        public TradeInfo AnalyzeDataFixedMode(decimal quantity)
+        public TradeInfo AnalyzeDataFixedMode(decimal quantity, decimal plusPointToWin)
         {
             var tradeInfo = new TradeInfo();
             tradeInfo.Message = "OK to buy";
@@ -68,8 +68,11 @@ namespace tradebot.core
             var coinQtyAtBuy = quantity;//* (1 + this._buyAccount.TradingFee / 100);
             var coinQtyAtSell = quantity;
 
-            var bitcoinQuantityAtSell = this.SellAccount.CurrentBidPrice * coinQtyAtSell * (1 - this.SellAccount.TradingFee / 100);
-            var bitcoinQuantityAtBuy = this.BuyAccount.CurrentAskPrice * coinQtyAtBuy * (1 + this.BuyAccount.TradingFee / 100);
+            var sellPrice = this.SellAccount.CurrentBidPrice - plusPointToWin;
+            var buyPrice = this.BuyAccount.CurrentAskPrice + plusPointToWin;
+            
+            var bitcoinQuantityAtSell = sellPrice * coinQtyAtSell * (1 - this.SellAccount.TradingFee / 100);
+            var bitcoinQuantityAtBuy = buyPrice * coinQtyAtBuy * (1 + this.BuyAccount.TradingFee / 100);
 
             // Check coin balances at both side to make sure it's ok to order
             if (bitcoinQuantityAtBuy >= this.BuyAccount.Bitcoin.Balance)
@@ -99,8 +102,8 @@ namespace tradebot.core
             tradeInfo.CoinQuantityAtBuy = coinQtyAtBuy;
             tradeInfo.CoinProfit = 0;
             tradeInfo.BitcoinProfit = bitcoinQuantityAtSell - bitcoinQuantityAtBuy;
-            tradeInfo.SellPrice = this.SellAccount.CurrentBidPrice;
-            tradeInfo.BuyPrice = this.BuyAccount.CurrentAskPrice;
+            tradeInfo.SellPrice = sellPrice;
+            tradeInfo.BuyPrice = buyPrice;
 
             return tradeInfo;
         }
