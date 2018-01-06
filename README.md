@@ -9,6 +9,17 @@ docker build -t trumhemcut/tradebot .
 **Get help**
 ```
 docker run trumhemcut/tradebot --help
+Usage:  [options]
+
+Options:
+  -?|-h|--help                                Show help information
+  -c|--coin <COIN>                            Trade Coin, e.g. ADA | XVG
+  -d|--delta <DELTA>                          Expected Delta, e.g. 0.00000010
+  -auto|--isautotrading                       Auto Trader Mode On/Off
+  -f|--tradeflow <BuyAtBinanceSellAtBittrex>  BuyAtBinanceSellAtBittrex | SellAtBinanceBuyAtBittrex | AutoSwitch
+  -q|--quantity <QUANTITY>                    Quantity to trade
+  -w|--win <PlusPointToWin>                   Plus Point To Win e.g. 0.00000003
+  -t|--testmode                               Test Mode On/Off
 ```
 
 **Buy at Binance, Sell at Bittrex**
