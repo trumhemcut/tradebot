@@ -93,6 +93,9 @@ namespace tradebot.core
                             var message = $"{this.Coin} - {this._options.TradeFlow.ToString()} Not tradable: {tradeInfo.Message}";
                             _logger.LogWarning(message);
                         }
+                        _logger.LogInformation("Time to buy ...");
+                        _logger.LogInformation($"Send email in {_timeLeftToSendEmail}s...\n");
+                        await SendMailIfTimePassed(tradeInfo, content);
                     }
                     else
                     {
