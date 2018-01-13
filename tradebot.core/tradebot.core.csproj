@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Bittrex.Net\Bittrex.Net.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DotNetCore.CAP" Version="2.1.2" />
     <PackageReference Include="hangfire.core" Version="1.6.17" />
     <PackageReference Include="hangfire.sqlserver" Version="1.6.17" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.1.0" />

@@ -26,15 +26,20 @@ namespace tradebot.api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IHostedService, TradeBotService>();
+            services.AddCap(cap =>
+            {
+                cap.UseSqlServer("connection_string");
+                cap.UseRabbitMQ("localhost");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
+
+            app.UseCap();
         }
     }
 }
