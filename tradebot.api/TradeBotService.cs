@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNetCore.CAP;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ namespace tradebot.api
     public class TradeBotService : HostedService
     {
         private ITradeBot _tradeBot;
-        public TradeBotService(ITradeBotBuilder tradeBotBuilder)
+        public TradeBotService(ITradeBotBuilder tradeBotBuilder, ICapPublisher publisher)
         {
             this._tradeBot = tradeBotBuilder.Configure(config =>
                             {

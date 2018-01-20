@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNetCore.CAP;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -24,6 +25,7 @@ namespace tradebot.core
         public TradeMode TradeMode { get { return this._options.TradeMode; } }
         public decimal FixedQuantity { get { return this._options.FixedQuantity; } }
         public bool TestMode { get { return this._options.InTestMode; } }
+        public ICapPublisher CapPublisher { get { return this._options.CapPublisher; } }
         private readonly TradeBotOptions _options;
         private readonly ILogger _logger;
         private readonly IEmailHelper _emailHelper;

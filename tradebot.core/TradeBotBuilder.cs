@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using DotNetCore.CAP;
 using Hangfire;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
@@ -49,10 +50,10 @@ namespace tradebot.core
             var hangfireServer = new BackgroundJobServer();
 
             var tradeBot = new TradeBot(
-                            this._options, 
-                            logger, 
-                            loggerFactory, 
-                            emailHelper, 
+                            this._options,
+                            logger,
+                            loggerFactory,
+                            emailHelper,
                             hangfireServer);
 
             return tradeBot;
@@ -179,7 +180,13 @@ namespace tradebot.core
 
             if (app.OptionHelp.HasValue())
                 Environment.Exit(1);
-            
+
+            return this;
+        }
+
+        ITradeBotBuilder UseCap(ICapPublisher publisher)
+        {
+            this._options.CapPublisher = publisher;
             return this;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DotNetCore.CAP;
 using Microsoft.Extensions.Configuration;
 
 namespace tradebot.core
@@ -22,6 +23,7 @@ namespace tradebot.core
         public bool InTestMode { get; set; }
         public decimal FixedQuantity { get; set; }
         public string HangfireDbConnectionString { get; set; }
+        public ICapPublisher CapPublisher { get; set; }
         public TradeBotOptions() { }
 
         public TradeBotOptions(IConfiguration configuration)

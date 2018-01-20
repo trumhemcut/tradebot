@@ -14,11 +14,11 @@
             "args": [
                 "-t",
                 "-c", "ADA",
-                "-d", "0.00000000",
+                "-d", "0.00000100",
                 "-auto", 
                 "-f", "AutoSwitch",
-                "-q", "50",
-                "-w", "0.00000001"
+                "-q", "1000",
+                "-w", "0.00000002"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

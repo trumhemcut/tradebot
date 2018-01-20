@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetCore.CAP;
+using DotNetCore.CAP.SqlServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -25,12 +27,15 @@ namespace tradebot.api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IHostedService, TradeBotService>();
             services.AddCap(cap =>
             {
-                cap.UseSqlServer("connection_string");
+                cap.UseSqlServer("Server=localhost;Database=eventbus;User Id=sa;Password=NashTech@123;");
                 cap.UseRabbitMQ("localhost");
             });
+
+            services.AddSingleton<IHostedService, TradeBotService>();
+            services.AddTransient<ICapPublisher, CapPublisher>();
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
