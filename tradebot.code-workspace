@@ -1,12 +1,6 @@
 {
 	"folders": [
 		{
-			"path": "Bittrex.Net"
-		},
-		{
-			"path": "Binance.Net"
-		},
-		{
 			"path": "tradebot.core"
 		},
 		{

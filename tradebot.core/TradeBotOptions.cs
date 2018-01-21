@@ -24,6 +24,7 @@ namespace tradebot.core
         public decimal FixedQuantity { get; set; }
         public string HangfireDbConnectionString { get; set; }
         public ICapPublisher CapPublisher { get; set; }
+        public string CapDbConnectionString { get; set; }
         public TradeBotOptions() { }
 
         public TradeBotOptions(IConfiguration configuration)
@@ -41,6 +42,7 @@ namespace tradebot.core
             this.InTestMode = Boolean.Parse(configuration["TestMode"]);
             this.FixedQuantity = Decimal.Parse(configuration["FixQuantity"]);
             this.HangfireDbConnectionString = configuration["Hangfire:ConnectionString"];
+            this.CapDbConnectionString = configuration["CAP:DatabaseConnectionString"];
         }
     }
 }

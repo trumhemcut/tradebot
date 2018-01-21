@@ -22,6 +22,7 @@ namespace tradebot.core
         private IServiceProvider _serviceProvider;
         private Dictionary<string, string> _dockerSecrets = new Dictionary<string, string>();
         private readonly string[] _args;
+        private ICapPublisher _capPublisher;
         public TradeBotBuilder(string[] args)
         {
             this._args = args;
@@ -43,6 +44,7 @@ namespace tradebot.core
             this._options.TradeAccounts = tradeFlowAnalyzer.TradeAccounts;
             this._options.BuyAccount = tradeFlowAnalyzer.BuyAccount;
             this._options.SellAccount = tradeFlowAnalyzer.SellAccount;
+            this._options.CapPublisher = this._capPublisher;
 
             var emailHelper = this._serviceProvider.GetRequiredService<IEmailHelper>();
 
@@ -184,9 +186,9 @@ namespace tradebot.core
             return this;
         }
 
-        ITradeBotBuilder UseCap(ICapPublisher publisher)
+        public ITradeBotBuilder UseCap(ICapPublisher publisher)
         {
-            this._options.CapPublisher = publisher;
+            this._capPublisher = publisher;
             return this;
         }
     }

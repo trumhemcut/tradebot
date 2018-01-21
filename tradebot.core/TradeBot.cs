@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,19 @@ namespace tradebot.core
             {
                 try
                 {
+                    if (CapPublisher != null)
+                    {
+                        using (var sqlConnection = new SqlConnection(this._options.CapDbConnectionString))
+                        {
+                            sqlConnection.Open();
+                            using (var transaction = sqlConnection.BeginTransaction())
+                            {
+                                await CapPublisher.PublishAsync("test", new { Message = "Hello World" }, transaction);
+                                transaction.Commit();
+                            }
+                        }
+                    }
+
                     TradeInfo tradeInfo = null;
                     var tradeInfoAnalyzer = new TradeInfoAnalyzer(this._options);
                     await tradeInfoAnalyzer.UpdateCoinPrices();

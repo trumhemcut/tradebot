@@ -6,8 +6,6 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="2.1.2" />
-    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
@@ -15,5 +13,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tradebot.core\tradebot.core.csproj" />
+    <ProjectReference Include="..\libraries\DotNetCore.CAP\DotNetCore.CAP.csproj" />
+    <ProjectReference Include="..\libraries\DotNetCore.CAP.SqlServer\DotNetCore.CAP.SqlServer.csproj" />
+    <ProjectReference Include="..\libraries\DotNetCore.CAP.RabbitMQ\DotNetCore.CAP.RabbitMQ.csproj" />
   </ItemGroup>
 </Project>

@@ -29,12 +29,13 @@ namespace tradebot.api
         {
             services.AddCap(cap =>
             {
-                cap.UseSqlServer("Server=localhost;Database=eventbus;User Id=sa;Password=NashTech@123;");
-                cap.UseRabbitMQ("localhost");
+                cap.UseSqlServer(Configuration["CAP:DatabaseConnectionString"]);
+                cap.UseRabbitMQ(Configuration["CAP:RabbitMQ:HostName"]);
             });
 
-            services.AddSingleton<IHostedService, TradeBotService>();
             services.AddTransient<ICapPublisher, CapPublisher>();
+            services.AddSingleton<IHostedService, TradeBotService>();
+
             services.AddMvc();
         }
 
@@ -45,6 +46,7 @@ namespace tradebot.api
                 app.UseDeveloperExceptionPage();
 
             app.UseCap();
+            app.UseMvc();
         }
     }
 }

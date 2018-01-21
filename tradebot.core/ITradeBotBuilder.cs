@@ -1,4 +1,5 @@
 using System;
+using DotNetCore.CAP;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,5 +16,6 @@ namespace tradebot.core
         ITradeBotBuilder SetSellAccount(ITradeAccount sellAccount);
         ITradeBotBuilder SetBuyAccount(ITradeAccount buyAccount);
         ITradeBotBuilder UseCommandLine();
+        ITradeBotBuilder UseCap(ICapPublisher publisher);
     }
 }

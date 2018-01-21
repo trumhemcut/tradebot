@@ -14,7 +14,10 @@ namespace tradebot.api
     public class TradeBotService : HostedService
     {
         private ITradeBot _tradeBot;
-        public TradeBotService(ITradeBotBuilder tradeBotBuilder, ICapPublisher publisher)
+        public TradeBotService(
+                ITradeBotBuilder tradeBotBuilder, 
+                SqlServerOptions sqlServerOptions,
+                ICapPublisher capPublisher)
         {
             this._tradeBot = tradeBotBuilder.Configure(config =>
                             {
@@ -39,6 +42,7 @@ namespace tradebot.api
                             .AddDockerSecret("BinanceAccount.API_SECRET", "BinanceAccount.API_SECRET")
                             .AddDockerSecret("BittrexAccount.API_KEY", "BittrexAccount.API_key")
                             .AddDockerSecret("BittrexAccount.API_SECRET", "BittrexAccount.API_SECRET")
+                            .UseCap(capPublisher)
                             .Build();
         }
 
