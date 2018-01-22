@@ -27,16 +27,16 @@ namespace tradebot.api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<TradeBotDbContext>(ServiceLifetime.Transient);
+
             services.AddCap(cap =>
             {
-                cap.UseSqlServer(Configuration["CAP:DatabaseConnectionString"]);
+                cap.UseEntityFramework<TradeBotDbContext>();
                 cap.UseRabbitMQ(Configuration["CAP:RabbitMQ:HostName"]);
             });
-
             services.AddTransient<ICapPublisher, CapPublisher>();
-            services.AddSingleton<IHostedService, TradeBotService>();
-
             services.AddMvc();
+            services.AddSingleton<IHostedService, TradeBotService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -15,10 +15,11 @@ namespace tradebot.api
     {
         private ITradeBot _tradeBot;
         public TradeBotService(
-                ITradeBotBuilder tradeBotBuilder, 
-                SqlServerOptions sqlServerOptions,
+                ITradeBotBuilder tradeBotBuilder,
                 ICapPublisher capPublisher)
+                // TradeBotDbContext dbContext)
         {
+            // ICapPublisher capPublisher = null;
             this._tradeBot = tradeBotBuilder.Configure(config =>
                             {
                                 config.SetBasePath(Directory.GetCurrentDirectory())

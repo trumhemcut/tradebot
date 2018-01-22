@@ -59,17 +59,7 @@ namespace tradebot.core
                 try
                 {
                     if (CapPublisher != null)
-                    {
-                        using (var sqlConnection = new SqlConnection(this._options.CapDbConnectionString))
-                        {
-                            sqlConnection.Open();
-                            using (var transaction = sqlConnection.BeginTransaction())
-                            {
-                                await CapPublisher.PublishAsync("test", new { Message = "Hello World" }, transaction);
-                                transaction.Commit();
-                            }
-                        }
-                    }
+                        await CapPublisher.PublishAsync("test", new { Message = "Hello World" });
 
                     TradeInfo tradeInfo = null;
                     var tradeInfoAnalyzer = new TradeInfoAnalyzer(this._options);

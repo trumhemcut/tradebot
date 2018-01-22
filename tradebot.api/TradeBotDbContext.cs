@@ -1,13 +1,20 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace tradebot.core
+namespace tradebot.api
 {
     public class TradeBotDbContext : DbContext
     {
+        private IConfiguration _configuration;
+        public TradeBotDbContext(IConfiguration configuration)
+        {
+            this._configuration = configuration;
+        }
+
         public DbSet<TestMessage> TestMessages { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=localhost;Database=eventbus;User Id=sa;Password=NashTech@123;");
+            optionsBuilder.UseSqlServer(_configuration["CAP:DatabaseConnectionString"]);
         }
     }
 
