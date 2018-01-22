@@ -14,7 +14,8 @@ namespace tradebot.api
         public DbSet<TestMessage> TestMessages { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_configuration["CAP:DatabaseConnectionString"]);
+            // optionsBuilder.UseSqlServer(_configuration["CAP:DatabaseConnectionString"]);
+            optionsBuilder.UseNpgsql(_configuration["CAP:DatabaseConnectionString"]);
         }
     }
 
